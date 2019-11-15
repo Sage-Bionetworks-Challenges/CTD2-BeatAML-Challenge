@@ -106,7 +106,7 @@ steps:
     out: [finished]
 
   run_docker:
-    run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v2.0/run_docker.cwl
+    run: run_docker.cwl
     in:
       - id: docker_repository
         source: "#get_docker_submission/docker_repository"
