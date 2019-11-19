@@ -24,7 +24,7 @@ def validateSC1(submission_path, goldstandard_path):
   """
   with open(submission_path, 'r') as s_file:
     with open(goldstandard_path, 'r') as g_file:
-      validateSC1(s_file, g_file)
+      validateSC1WithFiles(s_file, g_file)
 
 
 def validateSC1WithFiles(submission_file, goldstandard_file):
