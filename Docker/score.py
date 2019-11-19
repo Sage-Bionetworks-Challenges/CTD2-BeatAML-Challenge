@@ -43,6 +43,8 @@ def validateSC1WithFiles(submission_file, goldstandard_file):
   assert listsAreEqual(expected_columns, golden.columns.tolist()), (
       "Goldenfile has wrong columns.")
 
+  # TODO: check for a 1:1 correspondence between rows.
+
 
 def scoreSC1(submission_path, goldstandard_path):
   """Returns primary and secondary scores for a SC1 submission.
