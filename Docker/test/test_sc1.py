@@ -8,8 +8,8 @@ import pandas
 import tempfile
 import unittest
 
-from score import scoreSC1WithFiles
-from score import validateSC1WithFiles
+from score import scoreSC1
+from score import validateSC1
 
 class Subchallenge1Test(unittest.TestCase):
   def setUp(self):
@@ -23,40 +23,77 @@ class Subchallenge1Test(unittest.TestCase):
       'drug': ['d1', 'd2', 'd1', 'd2', 'd1'],
       'auc': [0.1, 0.1, 0.2, 0.2, 0.3]
     })
+    self.tmp_dir = tempfile.TemporaryDirectory()
+
+
+  def tearDown(self):
+    self.tmp_dir.cleanup()
 
 
   def runValidation(self):
     """Writes both dataframes to file and calls validateSC1."""
-    with tempfile.TemporaryFile('w+') as submission_file:
-      with tempfile.TemporaryFile('w+') as golden_file:
-        self.submission_df.to_csv(submission_file, index=False)
-        self.golden_df.to_csv(golden_file, index=False)
-        submission_file.seek(0)
-        golden_file.seek(0)
+    submission_fname = str(self.tmp_dir.name) + '/submission.csv'
+    golden_fname = str(self.tmp_dir.name) + '/golden.csv'
+    self.submission_df.to_csv(submission_fname, index=False)
+    self.golden_df.to_csv(golden_fname, index=False)
 
-        validateSC1WithFiles(submission_file, golden_file)
+    validateSC1(submission_fname, golden_fname)
 
 
   def runScoring(self):
     """Writes both dataframes to file and calls scoreSC1."""
-    with tempfile.TemporaryFile('w+') as submission_file:
-      with tempfile.TemporaryFile('w+') as golden_file:
-        self.submission_df.to_csv(submission_file, index=False)
-        self.golden_df.to_csv(golden_file, index=False)
-        submission_file.seek(0)
-        golden_file.seek(0)
+    submission_fname = str(self.tmp_dir.name) + '/submission.csv'
+    golden_fname = str(self.tmp_dir.name) + '/golden.csv'
+    self.submission_df.to_csv(submission_fname, index=False)
+    self.golden_df.to_csv(golden_fname, index=False)
 
-        return scoreSC1WithFiles(submission_file, golden_file)
+    return scoreSC1(submission_fname, golden_fname)
 
 
   def testSuccessfulValidation(self):
     self.runValidation()
 
 
+  def testValidationCatchesMissingColumn(self):
+    self.submission_df.drop(columns=['drug'], inplace=True)
+    with self.assertRaisesRegex(ValueError, 'Invalid columns') as cm:
+      self.runValidation()
+
+
+  def testValidationCatchesBadDtype(self):
+    self.submission_df.auc = self.submission_df.astype('object')
+    self.submission_df.auc.at[0] = 'bad_entry'
+    with self.assertRaisesRegex(ValueError, 'Not a properly formatted CSV'):
+      self.runValidation()
+
+
+  def testValidationCatchesDuplicates(self):
+    self.submission_df = self.submission_df.append(
+        {'drug': 'd1', 'lab_id': '1', 'auc': 0.12345},
+        ignore_index=True)
+    with self.assertRaisesRegex(ValueError, r'1 duplicate.*1.*d1'):
+      self.runValidation()
+
+
+  def testValidationCatchesExtraRow(self):
+    # Use a new drug, for no collisions.
+    self.submission_df = self.submission_df.append(
+        {'drug': 'd4', 'lab_id': '1', 'auc': 0.12345},
+        ignore_index=True)
+    with self.assertRaisesRegex(ValueError, r'1 unexpected row'):
+      self.runValidation()
+
+
+  def testValidationCatchesMissingRow(self):
+    self.submission_df = self.submission_df.drop([0])
+    with self.assertRaisesRegex(ValueError, r'Missing 1 row'):
+      self.runValidation()
+
+
   def testSuccessfulScore(self):
     self.runValidation()
-    self.assertEqual(self.runScoring(), 1.0)
+    self.assertEqual(self.runScoring(), (1.0, 1.0))
 
     self.submission_df.auc *= -1
-    self.assertEqual(self.runScoring(), -1.0)
+    self.assertEqual(self.runScoring(), (-1.0, -1.0))
 

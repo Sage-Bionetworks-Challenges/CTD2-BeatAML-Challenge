@@ -4,6 +4,13 @@ import numpy
 import pandas
 
 
+SC1_DTYPE = {
+  'lab_id': str,
+  'drug': str,
+  'auc': numpy.float64
+}
+
+
 def listsAreEqual(l1, l2):
   """Returns true if the two lists have the same contents."""
   if len(l1) is not len(l2):
@@ -22,15 +29,8 @@ def validateSC1(submission_path, goldstandard_path):
   Raises:
     ValueError if submission file is invalid.
   """
-  with open(submission_path, 'r') as s_file:
-    with open(goldstandard_path, 'r') as g_file:
-      validateSC1(s_file, g_file)
-
-
-def validateSC1WithFiles(submission_file, goldstandard_file):
-  """Same as above, but takes file handles."""
   try:
-    submission = pandas.read_csv(submission_file)
+    submission = pandas.read_csv(submission_path, dtype=SC1_DTYPE)
   except Exception as e:
     raise ValueError("Not a properly formatted CSV") from e
 
@@ -39,11 +39,32 @@ def validateSC1WithFiles(submission_file, goldstandard_file):
     raise ValueError("Invalid columns. Got\n\t%s\nExpected\n\t%s" %
         (str(submission.columns.tolist()), str(expected_columns)))
 
-  golden = pandas.read_csv(goldstandard_file)
+  golden = pandas.read_csv(goldstandard_path, dtype=SC1_DTYPE)
   assert listsAreEqual(expected_columns, golden.columns.tolist()), (
       "Goldenfile has wrong columns.")
 
-  # TODO: check for a 1:1 correspondence between rows.
+  # Check for duplicates.
+  duplicates = submission.duplicated(subset=['lab_id', 'drug'])
+  if duplicates.any():
+    raise ValueError("Found %d duplicate(s) including for (%s,%s)." % (
+      duplicates.sum(),
+      submission[duplicates].lab_id.iloc[0],
+      submission[duplicates].drug.iloc[0]))
+
+  # Check for 1:1 correspondence between entries, by computing the set
+  # difference between two multiindices.
+  indices = ['drug', 'lab_id']
+  submission.set_index(indices, inplace=True)
+  golden.set_index(indices, inplace=True)
+  extra_rows = submission.index.difference(golden.index)
+  if not extra_rows.empty:
+    raise ValueError("Found %d unexpected row(s) in submission." %
+      extra_rows.shape[0])
+
+  missing_rows = golden.index.difference(submission.index)
+  if not missing_rows.empty:
+    raise ValueError("Missing %d row(s) in submission." %
+      missing_rows.shape[0])
 
 
 def scoreSC1(submission_path, goldstandard_path):
@@ -60,19 +81,13 @@ def scoreSC1(submission_path, goldstandard_path):
     A tuple with (spearman, pearson) correlation coefficients, the primary
     and secondary scores.
   """
-  with open(submission_path, 'r') as s_file:
-    with open(goldstandard_path, 'r') as g_file:
-      scoreSC1WithFiles(s_file, g_file)
-
-
-def scoreSC1WithFiles(submission_file, goldstandard_file):
-  """Same as above, but takes file objects. Assumes files are validated."""
-  dtype = {'lab_id': str, 'drug': str}
-  submission = pandas.read_csv(submission_file, dtype=dtype)
-  goldstandard = pandas.read_csv(goldstandard_file, dtype=dtype)
+  submission = pandas.read_csv(submission_path, dtype=SC1_DTYPE)
+  goldstandard = pandas.read_csv(goldstandard_path, dtype=SC1_DTYPE)
 
   # Create a single DataFrame which is indexed by (lab_id, drug) and has two
-  # columns: [auc_submission, auc_goldstandard]
+  # columns: [auc_submission, auc_goldstandard]. For both submission and 
+  # goldstandard, we create a multindex with two dimensions: drug and lab_id,
+  # then do a join-by-index.
   indices = ['drug', 'lab_id']
   submission.set_index(indices, inplace=True)
   goldstandard.set_index(indices, inplace=True)
@@ -82,10 +97,13 @@ def scoreSC1WithFiles(submission_file, goldstandard_file):
       rsuffix='_goldstandard')[['auc_submission', 'auc_goldstandard']]
 
   # Compute correlation for each drug.
-  correlations = []
+  spearmans = []
+  pearsons = []
   for drug in joined.index.get_level_values('drug').unique():
     subset = joined.loc[drug]
-    corr = subset.corr(method='spearman').auc_submission.auc_goldstandard
-    correlations.append(corr)
+    spearmans.append(
+        subset.corr(method='spearman').auc_submission.auc_goldstandard)
+    pearsons.append(
+        subset.corr(method='pearson').auc_submission.auc_goldstandard)
 
-  return numpy.mean(correlations)
+  return (numpy.mean(spearmans), numpy.mean(pearsons))
