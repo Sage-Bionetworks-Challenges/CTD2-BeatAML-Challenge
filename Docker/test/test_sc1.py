@@ -15,12 +15,12 @@ class Subchallenge1Test(unittest.TestCase):
   def setUp(self):
     self.submission_df = pandas.DataFrame({
       'lab_id': ['1', '1', '2', '2', '3'],
-      'drug': ['d1', 'd2', 'd1', 'd2', 'd1'],
+      'inhibitor': ['d1', 'd2', 'd1', 'd2', 'd1'],
       'auc': [0.1, 0.1, 0.2, 0.2, 0.3]
     })
     self.golden_df = pandas.DataFrame({
       'lab_id': ['1', '1', '2', '2', '3'],
-      'drug': ['d1', 'd2', 'd1', 'd2', 'd1'],
+      'inhibitor': ['d1', 'd2', 'd1', 'd2', 'd1'],
       'auc': [0.1, 0.1, 0.2, 0.2, 0.3]
     })
     self.tmp_dir = tempfile.TemporaryDirectory()
@@ -55,7 +55,7 @@ class Subchallenge1Test(unittest.TestCase):
 
 
   def testValidationCatchesMissingColumn(self):
-    self.submission_df.drop(columns=['drug'], inplace=True)
+    self.submission_df.drop(columns=['inhibitor'], inplace=True)
     with self.assertRaisesRegex(ValueError, 'Invalid columns') as cm:
       self.runValidation()
 
@@ -69,16 +69,16 @@ class Subchallenge1Test(unittest.TestCase):
 
   def testValidationCatchesDuplicates(self):
     self.submission_df = self.submission_df.append(
-        {'drug': 'd1', 'lab_id': '1', 'auc': 0.12345},
+        {'inhibitor': 'd1', 'lab_id': '1', 'auc': 0.12345},
         ignore_index=True)
     with self.assertRaisesRegex(ValueError, r'1 duplicate.*1.*d1'):
       self.runValidation()
 
 
   def testValidationCatchesExtraRow(self):
-    # Use a new drug, for no collisions.
+    # Use a new inhibitor, for no collisions.
     self.submission_df = self.submission_df.append(
-        {'drug': 'd4', 'lab_id': '1', 'auc': 0.12345},
+        {'inhibitor': 'd4', 'lab_id': '1', 'auc': 0.12345},
         ignore_index=True)
     with self.assertRaisesRegex(ValueError, r'1 unexpected row'):
       self.runValidation()
