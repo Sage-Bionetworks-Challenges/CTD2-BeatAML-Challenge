@@ -6,7 +6,7 @@ import pandas
 
 SC1_DTYPE = {
   'lab_id': str,
-  'drug': str,
+  'inhibitor': str,
   'auc': numpy.float64
 }
 
@@ -34,7 +34,7 @@ def validateSC1(submission_path, goldstandard_path):
   except Exception as e:
     raise ValueError("Not a properly formatted CSV") from e
 
-  expected_columns = ['lab_id', 'drug', 'auc']
+  expected_columns = ['lab_id', 'inhibitor', 'auc']
   if not listsAreEqual(expected_columns, submission.columns.tolist()):
     raise ValueError("Invalid columns. Got\n\t%s\nExpected\n\t%s" %
         (str(submission.columns.tolist()), str(expected_columns)))
@@ -44,16 +44,16 @@ def validateSC1(submission_path, goldstandard_path):
       "Goldenfile has wrong columns.")
 
   # Check for duplicates.
-  duplicates = submission.duplicated(subset=['lab_id', 'drug'])
+  duplicates = submission.duplicated(subset=['lab_id', 'inhibitor'])
   if duplicates.any():
     raise ValueError("Found %d duplicate(s) including for (%s,%s)." % (
       duplicates.sum(),
       submission[duplicates].lab_id.iloc[0],
-      submission[duplicates].drug.iloc[0]))
+      submission[duplicates].inhibitor.iloc[0]))
 
   # Check for 1:1 correspondence between entries, by computing the set
   # difference between two multiindices.
-  indices = ['drug', 'lab_id']
+  indices = ['inhibitor', 'lab_id']
   submission.set_index(indices, inplace=True)
   golden.set_index(indices, inplace=True)
   extra_rows = submission.index.difference(golden.index)
@@ -84,11 +84,11 @@ def scoreSC1(submission_path, goldstandard_path):
   submission = pandas.read_csv(submission_path, dtype=SC1_DTYPE)
   goldstandard = pandas.read_csv(goldstandard_path, dtype=SC1_DTYPE)
 
-  # Create a single DataFrame which is indexed by (lab_id, drug) and has two
+  # Create a single DataFrame which is indexed by (lab_id, inhibitor) and has two
   # columns: [auc_submission, auc_goldstandard]. For both submission and 
-  # goldstandard, we create a multindex with two dimensions: drug and lab_id,
+  # goldstandard, we create a multindex with two dimensions: inhibitor and lab_id,
   # then do a join-by-index.
-  indices = ['drug', 'lab_id']
+  indices = ['inhibitor', 'lab_id']
   submission.set_index(indices, inplace=True)
   goldstandard.set_index(indices, inplace=True)
   joined = submission.join(
@@ -96,11 +96,11 @@ def scoreSC1(submission_path, goldstandard_path):
       lsuffix='_submission',
       rsuffix='_goldstandard')[['auc_submission', 'auc_goldstandard']]
 
-  # Compute correlation for each drug.
+  # Compute correlation for each inhibitor.
   spearmans = []
   pearsons = []
-  for drug in joined.index.get_level_values('drug').unique():
-    subset = joined.loc[drug]
+  for inhibitor in joined.index.get_level_values('inhibitor').unique():
+    subset = joined.loc[inhibitor]
     spearmans.append(
         subset.corr(method='spearman').auc_submission.auc_goldstandard)
     pearsons.append(
