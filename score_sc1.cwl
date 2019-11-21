@@ -4,7 +4,7 @@
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: score.py
+baseCommand: score_sc1.py
 
 hints:
   DockerRequirement:
@@ -20,7 +20,7 @@ inputs:
 
 arguments:
   - valueFrom: $(inputs.inputfile.path)
-    prefix: -f
+    prefix: -s
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
   - valueFrom: results.json

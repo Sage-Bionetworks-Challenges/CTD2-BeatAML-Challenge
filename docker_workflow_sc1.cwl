@@ -1,6 +1,6 @@
 #!/usr/bin/env cwl-runner
 #
-# Sample workflow
+# Workflow for SC1
 # Inputs:
 #   submissionId: ID of the Synapse submission to process
 #   adminUploadSynId: ID of a folder accessible only to the submission queue administrator
@@ -70,7 +70,7 @@ steps:
     in:
       - id: synapseid
         #This is a dummy syn id, replace when you use your own workflow
-        valueFrom: "syn18081597"
+        valueFrom: "syn21212902"
       - id: synapse_config
         source: "#synapseConfig"
     out:
