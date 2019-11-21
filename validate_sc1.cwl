@@ -17,7 +17,7 @@ inputs:
     type: File
 
 arguments:
-  - valueFrom: $(inputs.inputfile)
+  - valueFrom: $(inputs.inputfile.path)
     prefix: -s
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
