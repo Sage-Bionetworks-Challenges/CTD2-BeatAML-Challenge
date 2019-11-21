@@ -125,8 +125,7 @@ steps:
       - id: synapse_config
         source: "#synapseConfig"
       - id: input_dir
-        # Replace this with correct datapath
-        valueFrom: "/home/thomasyu/input"
+        valueFrom: "/home/vchung/input"
       - id: docker_script
         default:
           class: File
