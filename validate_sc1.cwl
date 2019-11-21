@@ -1,10 +1,10 @@
 #!/usr/bin/env cwl-runner
 #
-# Score SC1
+# Validate SC1
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: score.py
+baseCommand: validate_sc1.py
 
 hints:
   DockerRequirement:
@@ -15,12 +15,10 @@ inputs:
     type: File
   - id: goldstandard
     type: File
-  - id: check_validation_finished
-    type: boolean?
 
 arguments:
   - valueFrom: $(inputs.inputfile.path)
-    prefix: -f
+    prefix: -s
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
   - valueFrom: results.json
@@ -33,4 +31,18 @@ outputs:
   - id: results
     type: File
     outputBinding:
+      glob: results.json   
+
+  - id: status
+    type: string
+    outputBinding:
       glob: results.json
+      loadContents: true
+      outputEval: $(JSON.parse(self[0].contents)['prediction_file_status'])
+
+  - id: invalid_reasons
+    type: string
+    outputBinding:
+      glob: results.json
+      loadContents: true
+      outputEval: $(JSON.parse(self[0].contents)['prediction_file_errors'])
