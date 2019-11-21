@@ -169,7 +169,7 @@ steps:
     out: [finished]
 
   validation:
-    run: validate.cwl
+    run: validat_sc1.cwl
     in:
       - id: inputfile
         source: "#run_docker/predictions"
@@ -220,7 +220,7 @@ steps:
     out: [finished]
 
   scoring:
-    run: score.cwl
+    run: score_sc1.cwl
     in:
       - id: inputfile
         source: "#run_docker/predictions"
