@@ -69,7 +69,6 @@ steps:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/synapse-client-cwl-tools/v0.1/synapse-get-tool.cwl
     in:
       - id: synapseid
-        #This is a dummy syn id, replace when you use your own workflow
         valueFrom: "syn21212902"
       - id: synapse_config
         source: "#synapseConfig"
@@ -125,7 +124,7 @@ steps:
       - id: synapse_config
         source: "#synapseConfig"
       - id: input_dir
-        valueFrom: "/home/vchung/input"
+        valueFrom: "/home/vchung/input"    # TODO: update for final round
       - id: docker_script
         default:
           class: File
@@ -173,6 +172,8 @@ steps:
     in:
       - id: inputfile
         source: "#run_docker/predictions"
+      - id: goldstandard
+        source: "#download_goldstandard/filepath"
     out:
       - id: results
       - id: status
