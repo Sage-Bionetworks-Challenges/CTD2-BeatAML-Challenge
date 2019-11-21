@@ -169,7 +169,7 @@ steps:
     out: [finished]
 
   validation:
-    run: validat_sc1.cwl
+    run: validate_sc1.cwl
     in:
       - id: inputfile
         source: "#run_docker/predictions"
