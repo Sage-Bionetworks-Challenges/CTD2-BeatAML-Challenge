@@ -92,15 +92,13 @@ def main(syn, args):
 
     # These are the volumes that you want to mount onto your docker container
     output_dir = os.path.join(os.getcwd(), "output")
-    # Must make the directory or else it will be mounted into docker as a file
-    os.mkdir(output_dir)
     input_dir = args.input_dir
 
     print("mounting volumes")
     # These are the locations on the docker that you want your mounted
     # volumes to be + permissions in docker (ro, rw)
-    # It has to be in this format '/output:rw'
-    mounted_volumes = {output_dir: '/output:rw',
+    # It has to be in this format '/output/:rw'
+    mounted_volumes = {output_dir: '/output/:rw',
                        input_dir: '/input:ro'}
     # All mounted volumes here in a list
     all_volumes = [output_dir, input_dir]
