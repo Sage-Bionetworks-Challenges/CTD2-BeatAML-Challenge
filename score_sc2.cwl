@@ -1,10 +1,10 @@
 #!/usr/bin/env cwl-runner
 #
-# Score SC1
+# Score SC2
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: score_sc1.py
+baseCommand: score_sc2.py
 
 hints:
   DockerRequirement:
