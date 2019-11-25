@@ -1,6 +1,6 @@
 #!/usr/bin/env cwl-runner
 #
-# Sample workflow
+# Workflow for SC1
 # Inputs:
 #   submissionId: ID of the Synapse submission to process
 #   adminUploadSynId: ID of a folder accessible only to the submission queue administrator
@@ -69,8 +69,7 @@ steps:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/synapse-client-cwl-tools/v0.1/synapse-get-tool.cwl
     in:
       - id: synapseid
-        #This is a dummy syn id, replace when you use your own workflow
-        valueFrom: "syn18081597"
+        valueFrom: "syn21212902"
       - id: synapse_config
         source: "#synapseConfig"
     out:
@@ -125,8 +124,7 @@ steps:
       - id: synapse_config
         source: "#synapseConfig"
       - id: input_dir
-        # Replace this with correct datapath
-        valueFrom: "/home/thomasyu/input"
+        valueFrom: "/home/vchung/input"    # TODO: update for final round
       - id: docker_script
         default:
           class: File
@@ -170,14 +168,12 @@ steps:
     out: [finished]
 
   validation:
-    run: validate.cwl
+    run: validate_sc1.cwl
     in:
       - id: inputfile
         source: "#run_docker/predictions"
-      # Entity type isn't passed in because docker file prediction files are passed
-      # From the docker run command
-      - id: entity_type
-        valueFrom: "none"
+      - id: goldstandard
+        source: "#download_goldstandard/filepath"
     out:
       - id: results
       - id: status
@@ -225,7 +221,7 @@ steps:
     out: [finished]
 
   scoring:
-    run: score.cwl
+    run: score_sc1.cwl
     in:
       - id: inputfile
         source: "#run_docker/predictions"

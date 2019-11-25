@@ -1,30 +1,26 @@
 #!/usr/bin/env cwl-runner
 #
-# Validate SC1
+# Validate SC2
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: validate.py
+baseCommand: validate_sc2.py
 
 hints:
   DockerRequirement:
-    dockerPull: docker.synapse.org/syn20940521/scoring_harness:v1
+    dockerPull: docker.synapse.org/syn20940521/scoring_harness:v2
 
 inputs:
   - id: inputfile
     type: File
   - id: goldstandard
     type: File
-  - id: entity_type
-    type: string
 
 arguments:
-  - valueFrom: $(inputs.inputfile)
+  - valueFrom: $(inputs.inputfile.path)
     prefix: -s
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
-  - valueFrom: $(inputs.entity_type)
-    prefix: -e
   - valueFrom: results.json
     prefix: -r
 

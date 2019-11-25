@@ -1,14 +1,14 @@
 #!/usr/bin/env cwl-runner
 #
-# Score SC1
+# Score SC2
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: score.py
+baseCommand: score_sc2.py
 
 hints:
   DockerRequirement:
-    dockerPull: docker.synapse.org/syn20940521/scoring_harness:v1
+    dockerPull: docker.synapse.org/syn20940521/scoring_harness:v2
 
 inputs:
   - id: inputfile
@@ -20,7 +20,7 @@ inputs:
 
 arguments:
   - valueFrom: $(inputs.inputfile.path)
-    prefix: -f
+    prefix: -s
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
   - valueFrom: results.json

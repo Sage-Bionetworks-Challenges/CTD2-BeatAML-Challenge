@@ -58,4 +58,4 @@ outputs:
   predictions:
     type: File
     outputBinding:
-      glob: output/predictions.csv
+      glob: predictions.csv

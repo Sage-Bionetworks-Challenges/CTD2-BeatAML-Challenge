@@ -91,9 +91,8 @@ def main(syn, args):
     docker_image = args.docker_repository + "@" + args.docker_digest
 
     # These are the volumes that you want to mount onto your docker container
-    output_dir = os.path.join(os.getcwd(), "output")
-    # Must make the directory or else it will be mounted into docker as a file
-    os.mkdir(output_dir)
+    #output_dir = os.path.join(os.getcwd(), "output")
+    output_dir = os.getcwd()
     input_dir = args.input_dir
 
     print("mounting volumes")
@@ -127,7 +126,6 @@ def main(syn, args):
         print("running container")
         try:
             container = client.containers.run(docker_image,
-                                              'bash /app/train.sh',
                                               detach=True, volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
