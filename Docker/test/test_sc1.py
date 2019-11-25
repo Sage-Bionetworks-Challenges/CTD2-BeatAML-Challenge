@@ -8,8 +8,8 @@ import pandas
 import tempfile
 import unittest
 
-from score import scoreSC1
-from score import validateSC1
+from validate_and_score import scoreSC1
+from validate_and_score import validateSC1
 
 class Subchallenge1Test(unittest.TestCase):
   def setUp(self):
