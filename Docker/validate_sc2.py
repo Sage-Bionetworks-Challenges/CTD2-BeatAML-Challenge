@@ -42,14 +42,25 @@ def main(submission, goldstandard, results):
 
         else:
 
-            # All expected lab_ids are accounted for
+            # There is 1:1 mapping relationship between lab_ids in gs
+            # and predictions (all expected ids found, no dups, etc.)
             pred_lab_ids = predictions.lab_id.tolist()
-            gs_lab_ids = truth.lab_id.tolist()
-            all_ids_found = all(
-                lab_id in pred_lab_ids for lab_id in gs_lab_ids)
-            if not all_ids_found:
+            uniq_pred_ids = set(pred_lab_ids)
+            gs_lab_ids = set(truth.lab_id.tolist())
+
+            missing_ids = gs_lab_ids - uniq_pred_ids
+            unknown_ids = uniq_pred_ids - gs_lab_ids
+
+            if missing_ids:
                 invalid_reasons.append(
-                    "One or more expected lab_id(s) missing")
+                    f"Missing lab_ids: {sorted(missing_ids)}")
+
+            if unknown_ids:
+                invalid_reasons.append(
+                    f"Unknown lab_ids found: {sorted(unknown_ids)}")
+
+            if len(pred_lab_ids) != len(uniq_pred_ids):
+                invalid_reasons.append("Some lab_ids are duplicated")
 
             # Responder values are Boolean (0, 1)
             responders = set(predictions.responder)
