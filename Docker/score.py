@@ -35,7 +35,9 @@ def validateSC1(submission_path, goldstandard_path):
     raise ValueError("Not a properly formatted CSV") from e
 
   expected_columns = ['lab_id', 'inhibitor', 'auc']
-  if not listsAreEqual(expected_columns, submission.columns.tolist()):
+  if not listsAreEqual(
+      sorted(expected_columns),
+      sorted(submission.columns.tolist())):
     raise ValueError("Invalid columns. Got\n\t%s\nExpected\n\t%s" %
         (str(submission.columns.tolist()), str(expected_columns)))
 

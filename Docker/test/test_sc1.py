@@ -89,6 +89,11 @@ class Subchallenge1Test(unittest.TestCase):
     with self.assertRaisesRegex(ValueError, r'Missing 1 row'):
       self.runValidation()
 
+  
+  def testValidationAcceptsDifferentColumnOrder(self):
+    self.submission_df = self.submission_df[['inhibitor', 'lab_id', 'auc']]
+    self.runValidation()
+
 
   def testSuccessfulScore(self):
     self.runValidation()
@@ -96,4 +101,10 @@ class Subchallenge1Test(unittest.TestCase):
 
     self.submission_df.auc *= -1
     self.assertEqual(self.runScoring(), (-1.0, -1.0))
+
+
+  def testScoreSucceedsWithWeirdColumnOrdering(self):
+    self.submission_df = self.submission_df[['inhibitor', 'lab_id', 'auc']]
+    self.assertEqual(self.runScoring(), (1.0, 1.0))
+
 
