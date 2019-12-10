@@ -1,6 +1,6 @@
 FROM python:3.7
 
-RUN pip3 install synapseclient pandas numpy scipy sklearn
+RUN pip3 install synapseclient pandas numpy scipy sklearn lifelines
 
 COPY validate_and_score.py /usr/local/bin/validate_and_score.py
 COPY validate_sc1.py /usr/local/bin/validate_sc1.py

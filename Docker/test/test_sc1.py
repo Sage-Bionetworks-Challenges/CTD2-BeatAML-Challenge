@@ -4,12 +4,13 @@ Can be run with, eg:
   python3 -m unittest discover -f test/
 """
 
-import pandas
 import tempfile
 import unittest
 
-from validate_and_score import scoreSC1
-from validate_and_score import validateSC1
+import pandas 
+
+from sc1_utils import scoreSC1
+from sc1_utils import validateSC1
 
 class Subchallenge1Test(unittest.TestCase):
   def setUp(self):
