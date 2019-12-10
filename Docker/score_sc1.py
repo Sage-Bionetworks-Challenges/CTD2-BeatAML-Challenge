@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-
 """Score SC1."""
 
 import argparse
 import json
 
-import validate_and_score
+from sc1_utils import scoreSC1
 
 
 def main(submission, goldstandard, results):
@@ -16,11 +15,9 @@ def main(submission, goldstandard, results):
         goldstandard: Goldstandard file path
         results: File to write results to
     """
-    score_dict = {
-        'prediction_file_status': "SCORED"
-    }
+    score_dict = {'prediction_file_status': "SCORED"}
 
-    spearman, pearson = validate_and_score.scoreSC1(submission, goldstandard)
+    spearman, pearson = scoreSC1(submission, goldstandard)
     score_dict['spearman'] = spearman
     score_dict['pearson'] = pearson
 
@@ -30,12 +27,15 @@ def main(submission, goldstandard, results):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--submission_file",
-                        required=True, help="Submission file")
-    parser.add_argument("-g", "--goldstandard",
-                        required=True, help="Truth file")
-    parser.add_argument("-r", "--results",
-                        required=True, help="Results file")
+    parser.add_argument("-s",
+                        "--submission_file",
+                        required=True,
+                        help="Submission file")
+    parser.add_argument("-g",
+                        "--goldstandard",
+                        required=True,
+                        help="Truth file")
+    parser.add_argument("-r", "--results", required=True, help="Results file")
 
     args = parser.parse_args()
     main(args.submission_file, args.goldstandard, args.results)

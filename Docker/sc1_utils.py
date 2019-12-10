@@ -1,4 +1,4 @@
-"""Implements validation and scoring functions for subchallenges 1 and 2."""
+"""Implements validation and scoring functions for subchallenge 1."""
 
 import numpy
 import pandas
@@ -11,11 +11,11 @@ SC1_DTYPE = {
 }
 
 
-def listsAreEqual(l1, l2):
+def setsAreEqual(l1, l2):
   """Returns true if the two lists have the same contents."""
   if len(l1) is not len(l2):
     return False
-  return all([e1 == e2 for e1, e2 in zip(l1, l2)])
+  return all([e1 == e2 for e1, e2 in zip(sorted(l1), sorted(l2))])
 
 
 def validateSC1(submission_path, goldstandard_path):
@@ -32,17 +32,17 @@ def validateSC1(submission_path, goldstandard_path):
   try:
     submission = pandas.read_csv(submission_path, dtype=SC1_DTYPE)
   except Exception as e:
-    raise ValueError("Not a properly formatted CSV") from e
+    raise ValueError(
+      "Prediction file is improperly formatted. Must have two columns, %s. Error: %s"
+      % (str(SC1_DTYPE), str(e)))
 
   expected_columns = ['lab_id', 'inhibitor', 'auc']
-  if not listsAreEqual(
-      sorted(expected_columns),
-      sorted(submission.columns.tolist())):
+  if not setsAreEqual(expected_columns, submission.columns.tolist()):
     raise ValueError("Invalid columns. Got\n\t%s\nExpected\n\t%s" %
         (str(submission.columns.tolist()), str(expected_columns)))
 
   golden = pandas.read_csv(goldstandard_path, dtype=SC1_DTYPE)
-  assert listsAreEqual(expected_columns, golden.columns.tolist()), (
+  assert setsAreEqual(expected_columns, golden.columns.tolist()), (
       "Goldenfile has wrong columns.")
 
   # Check for duplicates.
