@@ -14,7 +14,6 @@ def main(submission, goldstandard, results):
         submissionfile: Participant submission file path
         goldstandard: Goldstandard file path
         results: File to write results to
-        path_to_treecmp: Path to TreeCmp
     """
     score_dict = {'prediction_file_status': "SCORED"}
 
