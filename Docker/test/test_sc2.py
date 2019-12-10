@@ -79,11 +79,18 @@ class Subchallenge2Test(unittest.TestCase):
     self.runValidation(expected_error_str='predictions were NAN')
 
 
-  def testDuplicatePrediction(self):
+  def testValidateDuplicatePrediction(self):
     self.submission_df = self.submission_df.append(
         {'lab_id': '3', 'survival': numpy.NAN},
         ignore_index=True)
     self.runValidation(expected_error_str='There are duplicate predictions.')
+
+
+  def testValidateMisplacedString(self):
+    self.submission_df = self.submission_df.append(
+        {'lab_id': '3', 'survival': 'I AM A BAD STRING'},
+        ignore_index=True)
+    self.runValidation(expected_error_str='could not convert string to float')
 
 
   def testSuccessfulScoring(self):

@@ -24,9 +24,10 @@ def validateSC2(submission, goldstandard):
     truth = pandas.read_csv(goldstandard, dtype=SC2_GOLDEN_DTYPE)
     try:
         predictions = pandas.read_csv(submission, dtype=SC2_SUBMISSION_DTYPE)
-    except Exception:
+    except Exception as e:
         invalid_reasons.append(
-            "Prediction file must be a two-column CSV file.")
+            "Prediction file is improperly formatted. Must have two columns, %s. Error: %s"
+            % (str(SC2_SUBMISSION_DTYPE), str(e)))
 
     else:
         header = predictions.columns.tolist()
@@ -64,20 +65,20 @@ def validateSC2(submission, goldstandard):
 
 
 def scoreSC2(submission, goldstandard):
-  """Score a subchallenge 2 submission, returns concordance index."""
-  predictions = pandas.read_csv(submission, dtype=SC2_SUBMISSION_DTYPE)
+    """Score a subchallenge 2 submission, returns concordance index."""
+    predictions = pandas.read_csv(submission, dtype=SC2_SUBMISSION_DTYPE)
 
-  truth = pandas.read_csv(goldstandard, dtype=SC2_GOLDEN_DTYPE)
+    truth = pandas.read_csv(goldstandard, dtype=SC2_GOLDEN_DTYPE)
 
-  joined = (truth
-      .set_index('lab_id')
-      .join(
-        predictions
+    joined = (truth
         .set_index('lab_id')
-        .rename(columns={'survival': 'prediction'})
-      ))
+        .join(
+          predictions
+          .set_index('lab_id')
+          .rename(columns={'survival': 'prediction'})
+        ))
 
-  return lifelines.utils.concordance_index(
-      joined.overallSurvival,
-      joined.prediction,
-      (joined.vitalStatus == 'Dead'))
+    return lifelines.utils.concordance_index(
+        joined.overallSurvival,
+        joined.prediction,
+        (joined.vitalStatus == 'Dead'))
