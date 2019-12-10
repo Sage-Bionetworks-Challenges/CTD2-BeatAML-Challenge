@@ -64,7 +64,7 @@ class Subchallenge1Test(unittest.TestCase):
   def testValidationCatchesBadDtype(self):
     self.submission_df.auc = self.submission_df.astype('object')
     self.submission_df.auc.at[0] = 'bad_entry'
-    with self.assertRaisesRegex(ValueError, 'Not a properly formatted CSV'):
+    with self.assertRaisesRegex(ValueError, 'convert string to float'):
       self.runValidation()
 
 
