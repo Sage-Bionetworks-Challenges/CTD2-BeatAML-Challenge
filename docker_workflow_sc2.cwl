@@ -120,7 +120,7 @@ steps:
       - id: status
         source: "#validate_docker/status"
       - id: parentid
-        source: "#submitterUploadSynId"
+        source: "#adminUploadSynId"
       - id: synapse_config
         source: "#synapseConfig"
       - id: input_dir
