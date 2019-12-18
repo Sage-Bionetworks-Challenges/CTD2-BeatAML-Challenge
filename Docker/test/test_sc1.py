@@ -76,13 +76,12 @@ class Subchallenge1Test(unittest.TestCase):
       self.runValidation()
 
 
-  def testValidationCatchesExtraRow(self):
+  def testValidationAllowsExtraRow(self):
     # Use a new inhibitor, for no collisions.
     self.submission_df = self.submission_df.append(
         {'inhibitor': 'd4', 'lab_id': '1', 'auc': 0.12345},
         ignore_index=True)
-    with self.assertRaisesRegex(ValueError, r'1 unexpected row'):
-      self.runValidation()
+    self.runValidation()
 
 
   def testValidationCatchesMissingRow(self):

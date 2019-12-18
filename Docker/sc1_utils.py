@@ -53,15 +53,11 @@ def validateSC1(submission_path, goldstandard_path):
       submission[duplicates].lab_id.iloc[0],
       submission[duplicates].inhibitor.iloc[0]))
 
-  # Check for 1:1 correspondence between entries, by computing the set
-  # difference between two multiindices.
+  # Check that all golden AUCs  are in the submission. Note that the submission
+  # is expected to have more rows than golden.
   indices = ['inhibitor', 'lab_id']
   submission.set_index(indices, inplace=True)
   golden.set_index(indices, inplace=True)
-  extra_rows = submission.index.difference(golden.index)
-  if not extra_rows.empty:
-    raise ValueError("Found %d unexpected row(s) in submission." %
-      extra_rows.shape[0])
 
   missing_rows = golden.index.difference(submission.index)
   if not missing_rows.empty:
@@ -89,14 +85,14 @@ def scoreSC1(submission_path, goldstandard_path):
   # Create a single DataFrame which is indexed by (lab_id, inhibitor) and has two
   # columns: [auc_submission, auc_goldstandard]. For both submission and 
   # goldstandard, we create a multindex with two dimensions: inhibitor and lab_id,
-  # then do a join-by-index.
+  # then do a join-by-index. We join on goldstandard, which is a subset.
   indices = ['inhibitor', 'lab_id']
   submission.set_index(indices, inplace=True)
   goldstandard.set_index(indices, inplace=True)
-  joined = submission.join(
-      goldstandard,
-      lsuffix='_submission',
-      rsuffix='_goldstandard')[['auc_submission', 'auc_goldstandard']]
+  joined = goldstandard.join(
+      submission,
+      lsuffix='_goldstandard',
+      rsuffix='_submission')[['auc_submission', 'auc_goldstandard']]
 
   # Compute correlation for each inhibitor.
   spearmans = []
