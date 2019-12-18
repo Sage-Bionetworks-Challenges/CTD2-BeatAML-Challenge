@@ -5,7 +5,7 @@
 import argparse
 import json
 
-import validate_and_score
+from sc1_utils import validateSC1
 
 
 def main(submission, goldstandard, results):
@@ -20,7 +20,7 @@ def main(submission, goldstandard, results):
     invalid_reasons = ""
 
     try:
-        validate_and_score.validateSC1(submission, goldstandard)
+        validateSC1(submission, goldstandard)
     except (AssertionError, ValueError) as e:
         invalid_reasons = str(e)
 

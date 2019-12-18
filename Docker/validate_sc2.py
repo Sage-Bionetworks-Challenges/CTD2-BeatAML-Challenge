@@ -20,7 +20,7 @@ def main(submission, goldstandard, results):
     """
     results_dict = validateSC2(submission, goldstandard)
     with open(results, 'w') as out:
-        out.write(json.dumps(result_dict))
+        out.write(json.dumps(results_dict))
 
 
 if __name__ == "__main__":
