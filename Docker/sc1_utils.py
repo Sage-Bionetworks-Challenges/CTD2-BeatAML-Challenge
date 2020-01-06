@@ -33,7 +33,7 @@ def validateSC1(submission_path, goldstandard_path):
     submission = pandas.read_csv(submission_path, dtype=SC1_DTYPE)
   except Exception as e:
     raise ValueError(
-      "Prediction file is improperly formatted. Must have two columns, %s. Error: %s"
+      "Prediction file is improperly formatted. Must have three columns, %s. Error: %s"
       % (str(SC1_DTYPE), str(e)))
 
   expected_columns = ['lab_id', 'inhibitor', 'auc']
