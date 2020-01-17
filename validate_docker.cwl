@@ -72,7 +72,7 @@ requirements:
           invalid_reasons = []
         
           # Submission must be a Docker image, not Project/Folder/File
-          if args.docker_repository:
+          if args.docker_repository and args.docker_digest:
 
             #Must read in credentials (username and password)
             config = synapseclient.Synapse().getConfigFile(configPath=args.synapse_config)
@@ -98,8 +98,7 @@ requirements:
               invalid_reasons.append("Docker container must be less than a teribyte")
             
           else:
-            invalid_reasons.append("Submission must be a Docker image, not Project/Folder/File.", "",
-              "Please visit 'Docker Submission' for more information.")
+            invalid_reasons.append("Submission must be a Docker image, not Project/Folder/File. Please visit 'Docker Submission' for more information.")
         
           status = "INVALID" if invalid_reasons else "VALID"
           result = {'docker_image_errors':"\n".join(invalid_reasons),'docker_image_status':status}
