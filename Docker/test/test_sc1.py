@@ -107,4 +107,15 @@ class Subchallenge1Test(unittest.TestCase):
     self.submission_df = self.submission_df[['inhibitor', 'lab_id', 'auc']]
     self.assertEqual(self.runScoring(), (1.0, 1.0))
 
-
+  def testScoreWithConstantPrediction(self):
+    self.submission_df = pandas.DataFrame({
+      'lab_id': [str(v) for v in range(5)],
+      'inhibitor': ['inhibitor'] * 5,
+      'auc': [1.0] * 5,
+    })
+    self.golden_df = pandas.DataFrame({
+      'lab_id': [str(v) for v in range(5)],
+      'inhibitor': ['inhibitor'] * 5,
+      'auc': range(5),
+    })
+    self.assertEqual(self.runScoring(), (0.0, 0.0))
