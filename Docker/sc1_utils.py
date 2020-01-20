@@ -18,6 +18,11 @@ def setsAreEqual(l1, l2):
   return all([e1 == e2 for e1, e2 in zip(sorted(l1), sorted(l2))])
 
 
+def almostZero(val, tol=1e-9):
+  """Returns true if val is almost equal to zero."""
+  return abs(val) < tol
+
+
 def validateSC1(submission_path, goldstandard_path):
   """Validate the format of SC1 submission file given the golden file.
 
@@ -99,9 +104,14 @@ def scoreSC1(submission_path, goldstandard_path):
   pearsons = []
   for inhibitor in joined.index.get_level_values('inhibitor').unique():
     subset = joined.loc[inhibitor]
-    spearmans.append(
-        subset.corr(method='spearman').auc_submission.auc_goldstandard)
-    pearsons.append(
-        subset.corr(method='pearson').auc_submission.auc_goldstandard)
+    # If the predictions are constant, return zero for spearman correlation.
+    if almostZero(subset.auc_submission.var()):
+      spear = 0.0
+      pear = 0.0
+    else:
+      spear = subset.corr(method='spearman').auc_submission.auc_goldstandard
+      pear = subset.corr(method='pearson').auc_submission.auc_goldstandard
+    spearmans.append(spear)
+    pearsons.append(pear)
 
   return (numpy.mean(spearmans), numpy.mean(pearsons))
