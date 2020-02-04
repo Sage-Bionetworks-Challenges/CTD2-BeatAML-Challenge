@@ -19,8 +19,7 @@ def create_log_file(log_filename, log_text=None):
         if log_text is not None:
             if isinstance(log_text, bytes):
                 log_text = log_text.decode("utf-8")
-            print(log_text)
-            log_file.write(log_text)
+            log_file.write(log_text.encode("ascii", "ignore").decode("ascii"))
         else:
             log_file.write("No Logs")
 
