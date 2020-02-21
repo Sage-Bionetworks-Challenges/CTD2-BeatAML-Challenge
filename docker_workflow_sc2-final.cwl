@@ -154,7 +154,8 @@ steps:
       - id: docker_script
         default:
           class: File
-          location: "run_docker-final.py"
+          location: "run_docker.py"  # for dry-run
+          #location: "run_docker-final.py"
     out:
       - id: predictions
 
