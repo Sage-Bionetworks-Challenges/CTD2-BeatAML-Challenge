@@ -143,8 +143,7 @@ steps:
       - id: docker_script
         default:
           class: File
-          location: "run_docker.py"  # for dry-run
-          #location: "run_docker-final.py"
+          location: "run_docker-final.py"
     out:
       - id: predictions
 
@@ -260,6 +259,8 @@ steps:
         source: "#synapseConfig"
       - id: results
         source: "#scoring/results"
+      - id: private_annotations
+        default: [spearman, pearson]
     out: []
 
   annotate_submission_with_output:
