@@ -11,8 +11,6 @@ hints:
     dockerPull: docker.synapse.org/syn20940521/scoring_harness:v2
 
 inputs:
-  - id: trainingfile
-    type: File
   - id: inputfile
     type: File
   - id: goldstandard
