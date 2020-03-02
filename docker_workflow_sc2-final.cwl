@@ -266,7 +266,7 @@ steps:
       - id: goldstandard
         source: "#download_goldstandard/filepath"
       - id: trainingdata
-        valueFrom: "#download_trainingdata/filepath"
+        source: "#download_trainingdata/filepath"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:
