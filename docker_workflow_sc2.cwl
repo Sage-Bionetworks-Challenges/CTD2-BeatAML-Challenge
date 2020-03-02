@@ -180,8 +180,6 @@ steps:
   validation:
     run: validate_sc2.cwl
     in:
-      - id: trainingfile
-        valueFrom: "/training/"
       - id: inputfile
         source: "#run_docker/predictions"
       - id: goldstandard
