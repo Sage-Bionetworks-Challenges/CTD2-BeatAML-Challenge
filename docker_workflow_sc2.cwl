@@ -75,6 +75,16 @@ steps:
     out:
       - id: filepath
 
+  download_trainingdata:
+    run: https://raw.githubusercontent.com/Sage-Bionetworks/synapse-client-cwl-tools/v0.1/synapse-get-tool.cwl
+    in:
+      - id: synapseid
+        valueFrom: "syn21297969"
+      - id: synapse_config
+        source: "#synapseConfig"
+    out:
+      - id: filepath
+
   validate_docker:
     run: validate_docker.cwl
     in:
@@ -255,6 +265,8 @@ steps:
         source: "#run_docker/predictions"
       - id: goldstandard
         source: "#download_goldstandard/filepath"
+      - id: trainingdata
+        valueFrom: "#download_trainingdata/filepath"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:
