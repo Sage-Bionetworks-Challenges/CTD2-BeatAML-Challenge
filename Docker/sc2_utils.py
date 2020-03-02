@@ -2,6 +2,8 @@
 
 import lifelines
 import pandas
+from sksurv.metrics import cumulative_dynamic_auc
+from sksurv.util import Surv
 
 
 SC2_SUBMISSION_DTYPE = {
@@ -64,7 +66,16 @@ def validateSC2(submission, goldstandard):
     return result_dict
 
 
-def scoreSC2(submission, goldstandard):
+def responseToSurvivalMatrix(response):
+    """Converts a response.csv to a survival matrix expected by scikitsurv."""
+    return Surv.from_dataframe('vitalStatus', 'overallSurvival',
+        pandas.concat([
+            (response.vitalStatus == 'Dead'),
+            response.overallSurvival
+        ], axis=1))
+
+
+def scoreSC2(submission, goldstandard, trainingdata):
     """Score a subchallenge 2 submission, returns concordance index."""
     predictions = pandas.read_csv(submission, dtype=SC2_SUBMISSION_DTYPE)
 
@@ -78,7 +89,19 @@ def scoreSC2(submission, goldstandard):
           .rename(columns={'survival': 'prediction'})
         ))
 
-    return lifelines.utils.concordance_index(
+    ci = lifelines.utils.concordance_index(
         joined.overallSurvival,
         joined.prediction,
         (joined.vitalStatus == 'Dead'))
+
+    DAYS = 365
+    trainingdata = pandas.read_csv(trainingdata)
+
+    auc = cumulative_dynamic_auc(
+        responseToSurvivalMatrix(trainingdata),
+        responseToSurvivalMatrix(joined[['vitalStatus', 'overallSurvival']]),
+        -joined.prediction.to_numpy(),
+        [DAYS]
+    )[0][0]
+
+    return (ci, auc)

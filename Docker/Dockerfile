@@ -1,6 +1,7 @@
 FROM python:3.7
 
-RUN pip3 install synapseclient pandas numpy scipy sklearn lifelines
+COPY requirements.txt .
+RUN pip3 install -r requirements.txt
 
 COPY sc*_utils.py /usr/local/bin/
 COPY validate_sc*.py /usr/local/bin/

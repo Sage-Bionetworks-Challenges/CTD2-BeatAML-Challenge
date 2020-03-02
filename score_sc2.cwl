@@ -15,6 +15,8 @@ inputs:
     type: File
   - id: goldstandard
     type: File
+  - id: trainingdata
+    type: File
   - id: check_validation_finished
     type: boolean?
 
@@ -23,6 +25,8 @@ arguments:
     prefix: -s
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
+  - valueFrom: $(inputs.trainingdata.path)
+    prefix: -t
   - valueFrom: results.json
     prefix: -r
 
