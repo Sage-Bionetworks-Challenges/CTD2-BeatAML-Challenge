@@ -270,7 +270,7 @@ steps:
       - id: results
         source: "#scoring/results"
       - id: private_annotations
-        default: [concordance_index]
+        default: [concordance_index, auc]
     out: []
 
   annotate_submission_with_output:
