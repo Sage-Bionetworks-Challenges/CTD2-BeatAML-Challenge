@@ -28,7 +28,7 @@ def main(submission, goldstandard, results):
 
     result_dict = {'prediction_file_errors': invalid_reasons[:500],
                    'prediction_file_status': prediction_file_status,
-                   'round': 1}
+                   'round': 2}
 
     with open(results, 'w') as out:
         out.write(json.dumps(result_dict))

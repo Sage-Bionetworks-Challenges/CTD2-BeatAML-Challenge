@@ -60,7 +60,7 @@ def validateSC2(submission, goldstandard):
 
     result_dict = {'prediction_file_errors': "\n".join(invalid_reasons)[:500],
                    'prediction_file_status': prediction_file_status,
-                   'round': 1}
+                   'round': 2}
     return result_dict
 
 
