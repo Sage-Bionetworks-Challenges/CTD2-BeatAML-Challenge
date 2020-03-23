@@ -86,6 +86,13 @@ class Subchallenge2Test(unittest.TestCase):
     self.runValidation(expected_error_str='predictions were NAN')
 
 
+  def testValidateInfValue(self):
+    self.submission_df = self.submission_df.append(
+        {'lab_id': '4', 'survival': float('inf')},
+        ignore_index=True)
+    self.runValidation(expected_error_str='predictions were INF')
+
+
   def testValidateDuplicatePrediction(self):
     self.submission_df = self.submission_df.append(
         {'lab_id': '3', 'survival': numpy.NAN},

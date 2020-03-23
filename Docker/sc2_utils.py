@@ -1,6 +1,7 @@
 """Utilities for validating and scoring SC2."""
 
 import lifelines
+import numpy
 import pandas
 from sksurv.metrics import cumulative_dynamic_auc
 from sksurv.util import Surv
@@ -57,6 +58,11 @@ def validateSC2(submission, goldstandard):
             if num_nan_survivals:
                 invalid_reasons.append(
                     f"{num_nan_survivals} predictions were NAN.")
+
+            num_inf_survivals = numpy.isinf(predictions.survival).sum()
+            if num_inf_survivals:
+                invalid_reasons.append(
+                    f"{num_inf_survivals} predictions were INF.")
 
     prediction_file_status = "INVALID" if invalid_reasons else "VALIDATED"
 
