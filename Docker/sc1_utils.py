@@ -73,6 +73,12 @@ def validateSC1(submission_path, goldstandard_path):
   if not missing_rows.empty:
     raise ValueError("Missing %d row(s) in submission." %
       missing_rows.shape[0])
+  
+  inf_predictions = numpy.isinf(submission.auc).sum()
+  if inf_predictions:
+    raise ValueError(
+        f"Some AUC predictions are INF ({inf_predictions}/{submission.auc.shape[0]})")
+
 
 def scoreSC1(submission_path, goldstandard_path):
   """Returns primary and secondary scores for a SC1 submission.

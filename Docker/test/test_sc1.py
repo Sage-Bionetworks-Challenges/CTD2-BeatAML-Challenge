@@ -95,6 +95,14 @@ class Subchallenge1Test(unittest.TestCase):
     self.runValidation()
 
 
+  def testValidationCatchesInf(self):
+    self.submission_df = self.submission_df.append(
+        {'inhibitor': 'd3', 'lab_id': '1', 'auc': float('inf')},
+        ignore_index=True)
+    with self.assertRaisesRegex(ValueError, 'AUC predictions are INF'):
+      self.runValidation()
+
+
   def testSuccessfulScore(self):
     self.runValidation()
     self.assertEqual(self.runScoring(), (1.0, 1.0))
