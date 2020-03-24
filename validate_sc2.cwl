@@ -8,7 +8,7 @@ baseCommand: validate_sc2.py
 
 hints:
   DockerRequirement:
-    dockerPull: docker.synapse.org/syn20940521/scoring_harness:v2
+    dockerPull: docker.synapse.org/syn20940521/scoring_harness:v3
 
 inputs:
   - id: inputfile
