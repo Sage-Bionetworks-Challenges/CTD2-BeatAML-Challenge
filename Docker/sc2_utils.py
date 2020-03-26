@@ -2,6 +2,7 @@
 
 import lifelines
 import pandas
+import numpy
 
 
 SC2_SUBMISSION_DTYPE = {
@@ -55,6 +56,11 @@ def validateSC2(submission, goldstandard):
             if num_nan_survivals:
                 invalid_reasons.append(
                     f"{num_nan_survivals} predictions were NAN.")
+
+            num_inf_survivals = numpy.isinf(predictions.survival).sum()
+            if num_inf_survivals:
+                invalid_reasons.append(
+                    f"{num_inf_survivals} predictions were INF.")
 
     prediction_file_status = "INVALID" if invalid_reasons else "VALIDATED"
 

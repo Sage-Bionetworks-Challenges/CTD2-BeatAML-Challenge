@@ -58,6 +58,11 @@ def validateSC1(submission_path, goldstandard_path):
       submission[duplicates].lab_id.iloc[0],
       submission[duplicates].inhibitor.iloc[0]))
 
+  # Check that there are values in the AUC column.
+  num_nan_auc = submission.auc.isna().sum()
+  if num_nan_auc:
+    raise ValueError(f"{num_nan_auc} predictions are NAN.")
+
   # Check that all golden AUCs  are in the submission. Note that the submission
   # is expected to have more rows than golden.
   indices = ['inhibitor', 'lab_id']
@@ -68,6 +73,11 @@ def validateSC1(submission_path, goldstandard_path):
   if not missing_rows.empty:
     raise ValueError("Missing %d row(s) in submission." %
       missing_rows.shape[0])
+  
+  inf_predictions = numpy.isinf(submission.auc).sum()
+  if inf_predictions:
+    raise ValueError(
+        f"Some AUC predictions are INF ({inf_predictions}/{submission.auc.shape[0]})")
 
 
 def scoreSC1(submission_path, goldstandard_path):
