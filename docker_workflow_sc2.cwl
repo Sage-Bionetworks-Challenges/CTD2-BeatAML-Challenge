@@ -69,7 +69,7 @@ steps:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/synapse-client-cwl-tools/v0.1/synapse-get-tool.cwl
     in:
       - id: synapseid
-        valueFrom: "syn21297971"
+        valueFrom: "syn21822895"
       - id: synapse_config
         source: "#synapseConfig"
     out:
@@ -235,56 +235,5 @@ steps:
         source: "#synapseConfig"
       - id: previous_annotation_finished
         source: "#annotate_docker_upload_results/finished"
-    out: [finished]
-
-  check_status:
-    run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v2.0/check_status.cwl
-    in:
-      - id: status
-        source: "#validation/status"
-      - id: previous_annotation_finished
-        source: "#annotate_validation_with_output/finished"
-      - id: previous_email_finished
-        source: "#validation_email/finished"
-    out: [finished]
-
-  scoring:
-    run: score_sc2.cwl
-    in:
-      - id: inputfile
-        source: "#run_docker/predictions"
-      - id: goldstandard
-        source: "#download_goldstandard/filepath"
-      - id: check_validation_finished 
-        source: "#check_status/finished"
-    out:
-      - id: results
-      
-  score_email:
-    run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v2.0/score_email.cwl
-    in:
-      - id: submissionid
-        source: "#submissionId"
-      - id: synapse_config
-        source: "#synapseConfig"
-      - id: results
-        source: "#scoring/results"
-    out: []
-
-  annotate_submission_with_output:
-    run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v2.0/annotate_submission.cwl
-    in:
-      - id: submissionid
-        source: "#submissionId"
-      - id: annotation_values
-        source: "#scoring/results"
-      - id: to_public
-        default: true
-      - id: force_change_annotation_acl
-        default: true
-      - id: synapse_config
-        source: "#synapseConfig"
-      - id: previous_annotation_finished
-        source: "#annotate_validation_with_output/finished"
     out: [finished]
  
