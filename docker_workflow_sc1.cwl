@@ -100,8 +100,6 @@ steps:
         source: "#validate_docker/status"
       - id: invalid_reasons
         source: "#validate_docker/invalid_reasons"
-      - id: errors_only
-        default: true
     out: [finished]
 
   annotate_docker_validation_with_output:
