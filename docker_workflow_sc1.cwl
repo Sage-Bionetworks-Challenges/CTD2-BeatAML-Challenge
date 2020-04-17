@@ -150,7 +150,7 @@ steps:
       - id: synapse_config
         source: "#synapseConfig"
       - id: input_dir
-        valueFrom: "/home/vchung/input_sc1"
+        valueFrom: "/home/vchung/input_sc1"    # TODO: update for final round
       - id: docker_script
         default:
           class: File
@@ -216,7 +216,10 @@ steps:
         source: "#validation/status"
       - id: invalid_reasons
         source: "#validation/invalid_reasons"
+      - id: errors_only
+        default: true
     out: [finished]
+
 
   annotate_validation_with_output:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v2.0/annotate_submission.cwl
@@ -234,4 +237,4 @@ steps:
       - id: previous_annotation_finished
         source: "#annotate_docker_upload_results/finished"
     out: [finished]
-
+ 
