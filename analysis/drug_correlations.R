@@ -121,3 +121,6 @@ cor.mats <- function(mat1, mat2) {
 p.mat <- readRDS("p_values.rds")
 c.mat <- readRDS("correlations.rds")
 
+# Remap Ensembl ID (colnames) back to gene symbols
+colnames(p.mat) <- gene_symbols$Symbol[which(gene_symbols$Gene %in% colnames(p.mat))]
+colnames(c.mat) <- gene_symbols$Symbol[which(gene_symbols$Gene %in% colnames(c.mat))]
