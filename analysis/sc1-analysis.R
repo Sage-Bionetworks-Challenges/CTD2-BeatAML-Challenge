@@ -144,6 +144,23 @@ aucs <-
     llply(auc.synIds,
           .fun = function(synId) read.csv.table.from.synapse(synId))
 
+dnaseq.synIds <-
+    list("training" = "syn21297970",
+         "leaderboard" = "syn21297972",
+         "validation" = "syn21297966")
+
+snvs <-
+    llply(dnaseq.synIds,
+          .fun = function(synId) read.csv.table.from.synapse(synId))
+
+snv.mats <-
+    llply(snvs,
+          .fun = function(df) {
+              df[, "mut"] <- 1
+              acast(data = df, formula = Hugo_Symbol ~ lab_id, fun.aggregate = function(x) ifelse(length(x) > 0, 1, 0),
+                    value.var = "mut", fill = 0)
+          })
+
 ## Read in the highly variable and expressed genes from our FIMM/OHSU Beat AML manuscript
 synId <- "syn21899141"
 synId <- "syn20628997"
@@ -184,7 +201,7 @@ drug.mean.validation.result.tbl <-
     ddply(validation.result.tbl, .variables = c("inhibitor"),
           .fun = function(df) data.frame(pearson = mean(df$pearson, na.rm=TRUE)))
 
-save.image(".Rdata")
+
 
 gene.symbol.expr.cors.bh <-
     llply(gene.symbol.expr.cors,
@@ -351,22 +368,44 @@ row_dend <-
                          method="complete"))
 
 num.clusters <- 7
-ct <- cutree(column.hc, k=num.clusters)
-drug.clusters <- data.frame(inhibitor = names(ct), cluster = unname(ct))
-
 png("sc1-training-data-vs-validation-performance.png")
-make.plot.dendro(drug.family.mat[, drugs],
-                 num.sig.genes[drugs],
-                 mean.drug.predictions[drugs],
-                 training.auc.ranges[drugs],
-                 drug.cor.mat[drugs, drugs],
-                 sig.cor.mat.all[, drugs],
-                 column_dend,
-                 row_dend,
-                 column_split = num.clusters,
-                 row_split = num.clusters,                 
-                 column_title_gp = gpar(fill = c("red", "blue", "green", "orange", "purple", "yellow", "brown"), font = 1:7))
+ht <- make.plot.dendro(drug.family.mat[, drugs],
+                       num.sig.genes[drugs],
+                       mean.drug.predictions[drugs],
+                       training.auc.ranges[drugs],
+                       drug.cor.mat[drugs, drugs],
+                       sig.cor.mat.all[, drugs],
+                       column_dend,
+                       row_dend,
+                       column_split = num.clusters,
+                       row_split = num.clusters,                 
+                       column_title_gp = gpar(fill = c("red", "blue", "green", "orange", "purple", "yellow", "brown"), font = 1:7))
 d <- dev.off()
+
+##ct <- cutree(column.hc, k=num.clusters)
+##drug.clusters <- data.frame(inhibitor = names(ct), cluster = unname(ct))
+
+## Get the column dendrogram from the plot
+col.dend <- column_dend(ht)
+clusters <- 1:length(col.dend)
+names(clusters) <- clusters
+
+get.children.labels <- function(node) {
+    if(is.leaf(node)) { return(attr(node, "label")) }
+    unlist(llply(node, .fun = function(kid) get.children.labels(kid)))
+}
+
+drug.clusters <-
+    ldply(clusters,
+          .fun = function(cluster) {
+              data.frame(inhibitor =
+                             unlist(llply(col.dend[[cluster]],
+                                          .fun = function(node) get.children.labels(node))))
+          })
+colnames(drug.clusters) <- c("cluster", "inhibitor")
+drug.clusters <- drug.clusters[, c("inhibitor", "cluster")]
+
+write.table(file="drug-clusters.tsv", drug.clusters, quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
 
 drug.range.tbl <- data.frame(inhibitor = names(training.auc.ranges), range = unname(training.auc.ranges))
 mean.perf.tbl <- data.frame(inhibitor = names(mean.drug.predictions), mean.correlation = unname(mean.drug.predictions))
@@ -390,3 +429,46 @@ g2 <- g2 + ylab("Dynamic Range\n(AUC MAD over Samples)")
 png("sc1-training-clusters-vs-validation-performance.png")
 grid.arrange(g1,g2)
 d <- dev.off()
+
+
+drugs.by.cluster <- dlply(drug.clusters, .variables = c("cluster"), .fun = function(df) as.character(df$inhibitor))
+
+## Take the mean drug/gene correlation across all drugs in a cluster
+cluster.gene.correlation.profiles <-
+    llply(drugs.by.cluster,
+          .fun = function(drugs.in.cluster) {
+              rowMeans(sig.cor.mat.all[, drugs.in.cluster])
+          })
+
+## Perform GSEA on mean drug/gene correlation profile of each cluster
+suppressPackageStartupMessages(p_load("fgsea"))
+
+suppressPackageStartupMessages(p_load("msigdbr"))
+kegg <- as.data.frame(msigdbr(species = "Homo sapiens", category = "C2", subcategory = "CP:KEGG"))
+kegg.pathways <- dlply(kegg, .variables = c("gs_name"), .fun = function(df) as.character(df$human_gene_symbol))
+
+go.bp <- as.data.frame(msigdbr(species = "Homo sapiens", category = "C5", subcategory = "BP"))
+go.bp.terms <- dlply(go.bp, .variables = c("gs_name"), .fun = function(df) as.character(df$human_gene_symbol))
+
+pathway.dbs <- list("kegg" = kegg.pathways, "go.bp" = go.bp.terms)
+
+gsea.res <-
+    llply(cluster.gene.correlation.profiles,
+          .fun = function(profile) {
+              stats <- profile
+              llply(pathway.dbs,
+                    .fun = function(pathway.db) {
+                        msz <- 10
+                        res <- fgsea(pathways = pathway.db,
+                                     stats = stats,
+                                     minSize = msz,
+                                     maxSize = 500,
+                                     nperm = 10000)
+                        o <- order(res$padj)
+                        res[o, ]
+                    })
+              })
+
+save.image(".Rdata")
+
+
