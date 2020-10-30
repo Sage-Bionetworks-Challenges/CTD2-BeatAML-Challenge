@@ -10,6 +10,7 @@ p_load(pheatmap)
 suppressPackageStartupMessages(p_load(reshape2))
 suppressPackageStartupMessages(p_load(plyr))
 suppressPackageStartupMessages(p_load(dplyr))
+suppressPackageStartupMessages(p_load(pvclust))
 
 
 # `synasper` not working on local computer, so using `reticulate` to
@@ -26,6 +27,22 @@ if(use.reticulate) {
 suppressPackageStartupMessages(p_load("foreach"))
 suppressPackageStartupMessages(p_load("parallel"))
 suppressPackageStartupMessages(p_load("ComplexHeatmap"))
+
+suppressPackageStartupMessages(p_load("fgsea"))
+suppressPackageStartupMessages(p_load("msigdbr"))
+
+suppressPackageStartupMessages(p_load(biomaRt))
+suppressPackageStartupMessages(p_load(AnnotationHub))
+suppressPackageStartupMessages(p_load(ensembldb))
+suppressPackageStartupMessages(p_load(ggplot2))
+suppressPackageStartupMessages(p_load(gridExtra))
+suppressPackageStartupMessages(p_load(openxlsx))
+suppressPackageStartupMessages(p_load(stringi))
+suppressPackageStartupMessages(p_load(rcdk))
+suppressPackageStartupMessages(p_load(rpubchem))
+suppressPackageStartupMessages(p_load(fingerprint))
+suppressPackageStartupMessages(p_load(reshape2))
+
 
 num.cores <- detectCores()
 if(!is.na(num.cores) && (num.cores > 1)) {
@@ -44,7 +61,6 @@ limit.genes.to.protein.coding <- function(genes, use.symbols = TRUE) {
     use.biomaRt <- TRUE
     exclude.mt <- FALSE
     if(use.biomaRt) {
-        suppressPackageStartupMessages(p_load(biomaRt))
         ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
         pc.tbl <- getBM(attributes = c("ensembl_gene_id","external_gene_name","description","chromosome_name"),
                         filters = 'biotype', values = c('protein_coding'), mart = ensembl)
@@ -57,8 +73,7 @@ limit.genes.to.protein.coding <- function(genes, use.symbols = TRUE) {
         return(genes)
     }
     if(exclude.mt) { stop("Have not implemented exclude.mt for annotationHub -- but is easy\n") }
-    suppressPackageStartupMessages(p_load(AnnotationHub))
-    suppressPackageStartupMessages(p_load(ensembldb))
+
     ah <- AnnotationHub()
     flag <- (ah$species == "Homo sapiens") & (ah$genome == "GRCh38") & (ah$dataprovider == "Ensembl") & (ah$rdataclass == "EnsDb")
     ah2 <- ah[flag, ]
@@ -95,6 +110,23 @@ read.csv.table.from.synapse <- function(synId, sep=",") {
     }
     ret <- suppressMessages(read.table(file, sep=sep, header=TRUE))
 }
+
+
+## Read in the prediction results from the validation phase
+synId <- "syn22267537"
+validation.result.tbl <- synTableQuery(paste0("SELECT * FROM ", synId))
+## validation.result.tbl <- as.data.frame(validation.result.tbl)
+validation.result.tbl <- validation.result.tbl$asDataFrame()
+
+## Exclude "gold" (which must mean gold-standard because its pearson and spearman = 1)
+validation.result.tbl <- subset(validation.result.tbl, team != "gold")
+validation.result.tbl$pearson <- as.numeric(validation.result.tbl$pearson)
+
+cat(paste0(length(unique(validation.result.tbl$team)), " teams submitted to SC1\n")) 
+
+drug.mean.validation.result.tbl <-
+    ddply(validation.result.tbl, .variables = c("inhibitor"),
+          .fun = function(df) data.frame(pearson = mean(df$pearson, na.rm=TRUE)))
 
 
 expr.synIds <- list("training" = "syn21212911",
@@ -168,13 +200,34 @@ aml.expressed.variable.genes.tbl <- read.csv.table.from.synapse(synId, sep="\t")
 gene_symbols <- as.data.frame(unique(raw.exprs[["training"]][, c("Gene", "Symbol")]))
 aml.expressed.variable.symbols <- subset(gene_symbols, Gene %in% as.character(aml.expressed.variable.genes.tbl$gene))$Symbol
 
-filter.genes <- limit.genes.to.protein.coding(aml.expressed.variable.symbols)
+## filter.genes <- limit.genes.to.protein.coding(aml.expressed.variable.symbols)
+filter.genes <- aml.expressed.variable.symbols
 
 ## Read in the drug family annotations
 drug.families <- read.table("41586_2018_623_MOESM3_ESM-s11.txt", sep="\t", header=TRUE, stringsAsFactors=FALSE)
 drug.families$value <- "Yes"
 drug.family.mat <- acast(data = drug.families, formula = family ~ inhibitor, fill = NA)
 drug.family.mat <- as.data.frame(drug.family.mat)
+
+
+## Read in drug annotations
+synId <- "syn23002655"
+drug.anno <- read.csv.table.from.synapse(synId, sep="\t")
+
+## Look up the fingerpints
+smiles <- as.character(drug.anno$smiles)
+names(smiles) <- drug.anno$inhibitor
+
+fingerprints <-
+    llply(smiles,
+          .fun = function(sm) {
+              if(is.null(sm)) { return(NA) }
+              if(is.na(sm)) { return(NA) }
+              parsed <- parse.smiles(sm)
+              if(is.null(parsed)) { return(NA) }
+              if(is.null(parsed[[1]])) { return(NA) }              
+              get.fingerprint(parsed[[1]])
+          })
 
 ## Define expressed genes from the distribution of the mean expression
 ## of the _training_ data
@@ -188,18 +241,6 @@ abline(v=cutoff)
 
 ## filter.genes <- names(mu)[mu > cutoff]
 
-## Read in the prediction results from the validation phase
-synId <- "syn22267537"
-validation.result.tbl <- synTableQuery(paste0("SELECT * FROM ", synId))
-validation.result.tbl <- as.data.frame(validation.result.tbl)
-
-## Exclude "gold" (which must mean gold-standard because its pearson and spearman = 1)
-validation.result.tbl <- subset(validation.result.tbl, team != "gold")
-validation.result.tbl$pearson <- as.numeric(validation.result.tbl$pearson)
-
-drug.mean.validation.result.tbl <-
-    ddply(validation.result.tbl, .variables = c("inhibitor"),
-          .fun = function(df) data.frame(pearson = mean(df$pearson, na.rm=TRUE)))
 
 
 
@@ -284,13 +325,36 @@ drug.cor.mat <- as.data.frame(drug.cor.mat)
 
 training.auc.ranges <- auc.ranges[["training"]]
 
+structural.similarity.mat <-
+    ldply(fingerprints,
+          .fun = function(f1) {
+              ret <- ldply(fingerprints,
+                           .fun = function(f2) {
+                               if( ( class(f1) == "logical" ) && is.na(f1) ) {
+                                   return(data.frame(sim = NA))
+                               }
+                               if( ( class(f2) == "logical" ) && is.na(f2) ) {
+                                   return(data.frame(sim = NA))
+                               }
+                               data.frame(sim = distance(f1, f2, method = "tanimoto"))
+                           })
+              colnames(ret)[1] <- "drug2"
+              ret
+          })
+colnames(structural.similarity.mat)[1] <- "drug1"
+structural.similarity.mat <- acast(structural.similarity.mat, formula = drug1 ~ drug2)
+structural.similarity.mat <- as.data.frame(structural.similarity.mat)
 
 
 for(d in all.drugs) {
     if(!(d %in% colnames(drug.family.mat))) { drug.family.mat[, d] <- NA }
     if(!(d %in% colnames(sig.cor.mat))) { sig.cor.mat[, d] <- NA }
+    if(!(d %in% rownames(sig.cor.mat))) { sig.cor.mat[d, ] <- NA }    
     if(!(d %in% colnames(drug.cor.mat))) { drug.cor.mat[, d] <- NA }    
     if(!(d %in% colnames(sig.cor.mat.all))) { sig.cor.mat.all[, d] <- NA }
+    if(!(d %in% rownames(sig.cor.mat.all))) { sig.cor.mat.all[d, ] <- NA }    
+    if(!(d %in% colnames(structural.similarity.mat))) { structural.similarity.mat[, d] <- NA }
+    if(!(d %in% rownames(structural.similarity.mat))) { structural.similarity.mat[d, ] <- NA }    
     if(!(d %in% names(mean.drug.predictions))) { mean.drug.predictions[d] <- NA }
     if(!(d %in% names(training.auc.ranges))) { training.auc.ranges[d] <- NA }    
     
@@ -298,68 +362,21 @@ for(d in all.drugs) {
 drug.family.mat <- drug.family.mat[, all.drugs]
 sig.cor.mat <- sig.cor.mat[, all.drugs]
 drug.cor.mat <- drug.cor.mat[all.drugs, all.drugs]
-sig.cor.mat.all <- sig.cor.mat.all[, all.drugs]
+sig.cor.mat.all <- sig.cor.mat.all[all.drugs, all.drugs]
 mean.drug.predictions <- mean.drug.predictions[all.drugs]
 training.auc.ranges <- training.auc.ranges[all.drugs]
 num.sig.genes <- colSums(!is.na(sig.cor.mat))
+structural.similarity.mat <- structural.similarity.mat[all.drugs, all.drugs]
 
-make.plot.dendro <- function(mat, sig.vec, perf.vec, range.vec, cor.mat, drug.gene.cor.mat, column_dend, row_dend,
-                             column_split, row_split, ...) {
-    breaks = c(1, 10, 100, 1000)
-    breaks <- breaks[breaks < max(sig.vec)]
-##    if(max(sig.vec) > max(breaks)) { breaks <- c(breaks, max(sig.vec)) }
-    log.breaks <- c(0, log10(breaks))
-    label.breaks <- c(0, breaks)
-    vals <- log10(as.numeric(sig.vec))
-    vals[is.infinite(vals)] <- 0
-    n.targets <- colSums(!is.na(mat))    
-    col_ha = HeatmapAnnotation(perf = anno_barplot(perf.vec),
-                               range = anno_barplot(range.vec),
-                               sig = anno_barplot(vals,
-                                                  axis_param = list(at = log.breaks, labels = label.breaks)),
-                               targets = anno_barplot(n.targets))
-                               
-    names(col_ha) = c("Mean Pearson", "Drug Range (MAD)", "# Sig Genes", "# Targets")
-    mat <- as.matrix(mat)
-    cor.mat <- as.matrix(cor.mat)
-    drug.gene.cor.mat <- as.matrix(drug.gene.cor.mat)
-    row.flag <- rowSums(is.na(mat)) != ncol(mat)
-    colors <- structure(1, names = c("Yes"))
-    h <- Heatmap(mat[row.flag,], cluster_rows = FALSE, cluster_columns = column_dend, top_annotation = col_ha,
-                 column_names_rot = 45, na_col = "white", show_heatmap_legend = FALSE, 
-                 row_names_gp = gpar(fontsize = 4),
-                 column_names_gp = gpar(fontsize = 4),
-                 show_column_dend = TRUE, column_split = column_split,
-                 height = 1, col = colors,
-                 ...)
-    h2 <- Heatmap(cor.mat, cluster_rows = row_dend, cluster_columns = column_dend, show_row_dend = FALSE,
-                  name = "Drug/drug\ncorrelation",
-                  column_split = column_split, row_split = row_split,
-                  row_names_gp = gpar(fontsize = 4),
-                  show_row_names = FALSE,
-                  row_title = "Drug",
-                  height = 1,
-                  ...)
-    h3 <- Heatmap(drug.gene.cor.mat, cluster_rows = TRUE, cluster_columns = column_dend,
-                  show_row_dend = FALSE,
-                  name = "Drug/gene\ncorrelation",
-                  column_split = column_split,
-                  column_names_rot = 45,
-                  column_names_gp = gpar(fontsize = 4),
-                  row_names_gp = gpar(fontsize = 4),
-                  show_row_names = FALSE,
-                  row_title = "Gene",
-                  column_title = "Drug",
-                  column_title_side = "bottom",
-                  height = 1,
-                  ...)
-    ht_list = h %v% h2 %v% h3
-    draw(ht_list, column_title = "Drug", column_title_side = "bottom")
-}
+source("plot-dendrogram.R")
 
 drugs <- all.drugs
 
 drug.mat <- drug.cor.mat[drugs, drugs]
+
+pvc <- pvclust(drug.mat, method.hclust = "complete",
+               method.dist = "euclidean", nboot=1000,
+               iseed = 1234, parallel = TRUE)
 
 column.hc <- hclust(dist(drug.mat, method="euclidean"), method="complete")
 column_dend <- as.dendrogram(column.hc)
@@ -369,17 +386,29 @@ row_dend <-
 
 num.clusters <- 7
 png("sc1-training-data-vs-validation-performance.png")
+sv <- structural.similarity.mat
+
+structural.similarity.mat <- sv
+structural.similarity.mat <- as.matrix(structural.similarity.mat )
+diag(structural.similarity.mat) <- NA
+
+##cutoff <- 1
+## flag <- !is.na(structural.similarity.mat) &
+##     structural.similarity.mat > cutoff
+## structural.similarity.mat[flag] <- cutoff
 ht <- make.plot.dendro(drug.family.mat[, drugs],
                        num.sig.genes[drugs],
                        mean.drug.predictions[drugs],
                        training.auc.ranges[drugs],
                        drug.cor.mat[drugs, drugs],
+                       structural.similarity.mat[drugs, drugs],
                        sig.cor.mat.all[, drugs],
                        column_dend,
                        row_dend,
                        column_split = num.clusters,
                        row_split = num.clusters,                 
                        column_title_gp = gpar(fill = c("red", "blue", "green", "orange", "purple", "yellow", "brown"), font = 1:7))
+
 d <- dev.off()
 
 ##ct <- cutree(column.hc, k=num.clusters)
@@ -415,8 +444,6 @@ all.tbl <- merge(all.tbl, mean.perf.tbl, all.x = TRUE)
 all.tbl <- all.tbl[!(all.tbl$inhibitor == "GRD"),]
 
 
-suppressPackageStartupMessages(p_load(ggplot2))
-suppressPackageStartupMessages(p_load(gridExtra))
 all.tbl$cluster <- factor(all.tbl$cluster, levels = sort(unique(all.tbl$cluster)))
 g1 <- ggplot(data = all.tbl)
 g1 <- g1 + geom_boxplot(aes(x = cluster, y = mean.correlation))
@@ -430,6 +457,30 @@ png("sc1-training-clusters-vs-validation-performance.png")
 grid.arrange(g1,g2)
 d <- dev.off()
 
+sims.long <- melt(structural.similarity.mat)
+colnames(sims.long) <- c("inhibitor1", "inhibitor2", "similarity")
+sims.long <- merge(sims.long, drug.clusters, by.x = c("inhibitor1"),
+                   by.y = c("inhibitor"))
+sims.long <- merge(sims.long, drug.clusters, by.x = c("inhibitor2"),
+                   by.y = c("inhibitor"))
+sims.long$samecluster <- sims.long$cluster.x == sims.long$cluster.y
+sims.long$intracluster <-
+    unlist(apply(sims.long[, c("cluster.x", "cluster.y")],
+                 1, function(row) {
+                     if(row[1] == row[2]) {
+                         return(paste0("intracluster ", row[1]))
+                     }
+                     return("different\nclusters")
+                 }))
+
+
+g <- ggplot()
+g <- g + geom_boxplot(data = sims.long, aes(x = intracluster, y = similarity))
+g <- g + xlab("")
+
+png("sc1-training-clusters-vs-similarity.png")
+print(g)
+d <- dev.off()
 
 drugs.by.cluster <- dlply(drug.clusters, .variables = c("cluster"), .fun = function(df) as.character(df$inhibitor))
 
@@ -441,9 +492,7 @@ cluster.gene.correlation.profiles <-
           })
 
 ## Perform GSEA on mean drug/gene correlation profile of each cluster
-suppressPackageStartupMessages(p_load("fgsea"))
 
-suppressPackageStartupMessages(p_load("msigdbr"))
 kegg <- as.data.frame(msigdbr(species = "Homo sapiens", category = "C2", subcategory = "CP:KEGG"))
 kegg.pathways <- dlply(kegg, .variables = c("gs_name"), .fun = function(df) as.character(df$human_gene_symbol))
 
@@ -467,8 +516,43 @@ gsea.res <-
                         o <- order(res$padj)
                         res[o, ]
                     })
-              })
+          })
+
+
+drugs.by.cluster <- lapply(drugs.by.cluster, sort)
+
+res <- as.data.frame(stri_list2matrix(drugs.by.cluster))
+colnames(res) <- paste0("Cluster ", 1:ncol(res))
+
+file <- "cluster-pathway-enrichments.xlsx"
+sheet <- "clusters"
+
+wb <- createWorkbook()
+
+## write.xlsx(res, file = file, sheetName = sheet, append = FALSE)
+addWorksheet(wb, sheetName = sheet)
+writeData(wb, sheet = sheet, res)
+
+nms <- names(gsea.res)
+names(nms) <- nms
+for(nm in nms) {
+    print(nm)
+    sheet <- paste0("C", nm, " KEGG")
+    tbl <- as.data.frame(gsea.res[[nm]][["kegg"]])
+    addWorksheet(wb, sheetName = sheet)
+    writeData(wb, sheet = sheet, tbl)
+##    write.xlsx(tbl, file = file, sheetName = sheet, append = FALSE)    
+    sheet <- paste0("C", nm, " GO BP")
+    tbl <- as.data.frame(gsea.res[[nm]][["go.bp"]])
+##    write.xlsx(tbl, file = file, sheetName = sheet, append = FALSE)        
+    addWorksheet(wb, sheetName = sheet)
+    writeData(wb, sheet = sheet, tbl)
+}
+
+saveWorkbook(wb, file = file, overwrite = TRUE)
+
 
 save.image(".Rdata")
+
 
 
