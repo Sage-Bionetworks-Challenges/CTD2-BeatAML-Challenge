@@ -88,3 +88,11 @@ def scoreSC2(submission, goldstandard):
         joined.overallSurvival,
         joined.prediction,
         (joined.vitalStatus == 'Dead'))
+
+def scoreSC2_with_r(predictions, truth):
+    """Score a subchallenge 2 submission, returns concordance index."""
+     
+    return lifelines.utils.concordance_index(
+        truth.overallSurvival,
+        predictions,
+        (truth.vitalStatus == 'Dead'))

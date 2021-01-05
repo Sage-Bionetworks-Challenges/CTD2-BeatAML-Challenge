@@ -85,31 +85,7 @@ plot.anno.heatmap.with.multiple.legends <-
         return(list("full.plot" = full.plot, "legends" = legends))
     }
 
-## Modified slightly from
-## https://stackoverflow.com/questions/53170465/how-to-make-a-base-r-style-boxplot-using-ggplot2
-geom_boxplotMod <- function(mapping = NULL, data = NULL, stat = "boxplot", 
-    position = "dodge2", ..., outlier.colour = NULL, outlier.color = NULL, 
-    outlier.fill = NULL, outlier.shape = 1, outlier.size = 1.5, 
-    outlier.stroke = 0.5, outlier.alpha = NULL, notch = FALSE, notchwidth = 0.5,
-    varwidth = FALSE, na.rm = FALSE, show.legend = NA, inherit.aes = TRUE,
-    linetype = "dashed") # to know how these come here use: args(geom_boxplot)
-    {
-    list(geom_boxplot(
-            mapping = mapping, data = data, stat = stat, position = position,
-            outlier.colour = outlier.colour, outlier.color = outlier.color, 
-            outlier.fill = outlier.fill, outlier.shape = outlier.shape, 
-            outlier.size = outlier.size, outlier.stroke = outlier.stroke, 
-            outlier.alpha = outlier.alpha, notch = notch, 
-            notchwidth = notchwidth, varwidth = varwidth, na.rm = na.rm, 
-            show.legend = show.legend, inherit.aes = inherit.aes, linetype = 
-            linetype, ...),
-        stat_boxplot(geom = "errorbar", aes(ymin = ..ymax..), width = 0.25),
-        #the width of the error-bar heads are decreased
-        stat_boxplot(geom = "errorbar", aes(ymax = ..ymin..), width = 0.25),
-        stat_boxplot(aes(ymin = ..lower.., ymax = ..upper..), ...)
-        )
-    }
-
+source("geom_boxplotMod.R")
 
 ## skhurana just submitted the baseline
 teams.to.drop <- c("skhurana", "gold")
@@ -130,8 +106,10 @@ for(col in anno.cols) {
         anno.df[flag,col] <- rename.list[[nm]]
     }
 }
+## baseline.name <- "ridge"
+baseline.name <- "Baseline"
 ## Add a row for baseline (ridge) and MKL
-anno.df <- rbind(anno.df, data.frame("team" = "ridge", "Method" = "Ind", "Expr" = "Yes", "Mut" = "Yes", "Clin" = "Yes"))
+anno.df <- rbind(anno.df, data.frame("team" = baseline.name, "Method" = "Ind", "Expr" = "Yes", "Mut" = "Yes", "Clin" = "Yes"))
 anno.df <- rbind(anno.df, data.frame("team" = "MKL", "Method" = "Joint", "Expr" = "Yes", "Mut" = "Yes", "Clin" = "Yes"))
 flag <- anno.df$team == "Bioinformatics_Class_Challenge"
 anno.df[flag, "team"] <- "BCC"
@@ -172,7 +150,7 @@ if(use.dummy) {
     ## Add in the baseline/ridge results
     ridge.res <- read.table("baseline_scores_by_drug.csv", sep=",", header=TRUE)
     ridge.res <- ridge.res[, c("lab_id", "inhibitor", "baseline")]
-    colnames(ridge.res) <- c("lab_id", "inhibitor", "ridge")
+    colnames(ridge.res) <- c("lab_id", "inhibitor", baseline.name)
     pred.mat.sc1 <- merge(pred.mat.sc1, ridge.res, all.x = TRUE)
 
     ## Add in Anna's MKL results
@@ -249,18 +227,19 @@ anno.df$team <- factor(anno.df$team, levels = lvls)
 g1 <- ggplot(data = scores, aes_string(x = "team", y = "spearman"))
 g1 <- g1 + geom_boxplotMod(fill = "#56B4E9")
 g1 <- g1 + coord_flip()
-g1 <- g1 + xlab("Method")
-## g1 <- g1 + ylab("Pearson Correlation")
-g1 <- g1 + ylab("Pearson")
+## g1 <- g1 + xlab("Method")
+## g1 <- g1 + ylab("Spearman Correlation")
+g1 <- g1 + ylab("Spearman")
 g1 <- g1 + theme(text = element_text(size=18), title = element_text(size = 20),
-                 axis.text.x = element_text(angle = 45, hjust = 1))
+                 axis.text.x = element_text(angle = 45, hjust = 1),
+		 axis.title.y = element_blank())
 
 ## Plot barplot
 g2 <- ggplot(data = mean.pearson.scores)
 g2 <- g2 + geom_col(aes_string(x = "team", y = "pearson"), fill = "#E69F00")
 g2 <- g2 + coord_flip()
 g2 <- g2 + xlab("Method")
-g2 <- g2 + ylab("Spearman")
+g2 <- g2 + ylab("Pearson")
 g2 <- g2 + theme(text = element_text(size=18))    
 g2 <- g2 + theme(axis.text.y = element_blank(), axis.title.y = element_blank(),
                  axis.ticks.y = element_blank(),
