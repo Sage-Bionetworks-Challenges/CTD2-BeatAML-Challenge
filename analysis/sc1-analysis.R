@@ -505,6 +505,31 @@ png("sc1-training-clusters-vs-similarity.png")
 print(g)
 d <- dev.off()
 
+sims.long <- melt(structural.similarity.mat)
+colnames(sims.long) <- c("inhibitor1", "inhibitor2", "similarity")
+sims.long <- merge(sims.long, drug.clusters, by.x = c("inhibitor1"),
+                   by.y = c("inhibitor"))
+sims.long <- merge(sims.long, drug.clusters, by.x = c("inhibitor2"),
+                   by.y = c("inhibitor"))
+sims.long$samecluster <- sims.long$cluster.x == sims.long$cluster.y
+sims.long$intracluster <-
+    unlist(apply(sims.long[, c("cluster.x", "cluster.y")],
+                 1, function(row) {
+                     if(row[1] == row[2]) {
+                         return(paste0("intracluster ", row[1]))
+                     }
+                     return("different\nclusters")
+                 }))
+
+
+g <- ggplot()
+g <- g + geom_boxplot(data = sims.long, aes(x = intracluster, y = similarity))
+g <- g + xlab("")
+
+png("sc1-training-clusters-vs-similarity.png")
+print(g)
+d <- dev.off()
+
 drugs.by.cluster <- dlply(drug.clusters, .variables = c("cluster"), .fun = function(df) as.character(df$inhibitor))
 
 ## Take the mean drug/gene correlation across all drugs in a cluster
