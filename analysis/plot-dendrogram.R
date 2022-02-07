@@ -13,10 +13,12 @@ make.plot.dendro <- function(mat, sig.vec, multi.vs.uni.vec, perf.vec, range.vec
                                multi = anno_barplot(multi.vs.uni.vec),
                                range = anno_barplot(range.vec),
                                sig = anno_barplot(vals,
-                                                  axis_param = list(at = log.breaks, labels = label.breaks)),
-                               targets = anno_barplot(n.targets))
+                                                  axis_param = list(at = log.breaks, labels = label.breaks))
+                               # targets = anno_barplot(n.targets)
+                               )
                                
-    names(col_ha) = c("Mean Pearson", "Multi- vs Uni-variate", "Drug Range (MAD)", "# Sig Genes", "# Targets")
+    # names(col_ha) = c("Mean Spearman", "Multi- vs Uni-variate", "Drug Range (MAD)", "# Sig Genes", "# Targets")
+    names(col_ha) = c("Mean Spearman", "Multi- vs Uni-variate", "Drug Range (MAD)", "# Sig Genes")
     mat <- as.matrix(mat)
     cor.mat <- as.matrix(cor.mat)
     structural.mat <- as.matrix(structural.mat)    
@@ -30,11 +32,11 @@ make.plot.dendro <- function(mat, sig.vec, multi.vs.uni.vec, perf.vec, range.vec
                  show_column_dend = TRUE, column_split = column_split,
                  height = 1, col = colors,
                  ...)
-    h2 <- Heatmap(cor.mat, cluster_rows = row_dend, cluster_columns = column_dend, show_row_dend = FALSE,
-                  name = "Drug/drug\ncorrelation",
+    h2 <- Heatmap(cor.mat, cluster_rows = row_dend, cluster_columns = column_dend, show_row_dend = FALSE, top_annotation = col_ha,
+                  name = "Correlation",
                   column_split = column_split, row_split = row_split,
                   row_names_gp = gpar(fontsize = 4),
-                  show_row_names = FALSE,
+                  show_row_names = FALSE, show_column_names = FALSE,
                   row_title = "Drug",
                   height = 1,
                   ...)
@@ -59,7 +61,9 @@ make.plot.dendro <- function(mat, sig.vec, multi.vs.uni.vec, perf.vec, range.vec
                   column_title_side = "bottom",
                   height = 1,
                   ...)
-    ht_list = h %v% h2 %v% h3 %v% h4
-    ht_list = h %v% h2 %v% h3
+    # ht_list = h %v% h2 %v% h3 %v% h4
+    # ht_list = h %v% h2 %v% h3
+    # ht_list = h %v% h2 
+    ht_list = h2
     draw(ht_list, column_title = "Drug", column_title_side = "bottom")
 }
