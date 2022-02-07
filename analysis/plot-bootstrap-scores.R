@@ -190,6 +190,19 @@ if(use.dummy) {
         tmp
     }) 
     boot.sc1 <- boot.sc1[, -1]
+
+library(challengescoring)
+library(challengerutils)
+print(colnames(boot.sc1))
+    baseline.indx <- which(colnames(boot.sc1) == "Baseline")
+    bayes.sc1 <- computeBayesFactor(boot.sc1, 1, T) %>%
+    	      as.data.frame()
+    print(bayes.sc1)
+
+    bayes.sc1 <- computeBayesFactor(boot.sc1, baseline.indx, T) %>%
+    	      as.data.frame()
+    print(bayes.sc1)
+
     scores <- melt(boot.sc1)
     colnames(scores) <- c("team", "spearman")
     scores$team <- as.character(scores$team)

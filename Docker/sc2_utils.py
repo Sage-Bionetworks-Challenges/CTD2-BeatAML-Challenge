@@ -3,6 +3,8 @@
 import lifelines
 import pandas
 import numpy
+from sksurv.util import Surv
+from sksurv.metrics import cumulative_dynamic_auc
 
 
 SC2_SUBMISSION_DTYPE = {
@@ -96,3 +98,23 @@ def scoreSC2_with_r(predictions, truth):
         truth.overallSurvival,
         predictions,
         (truth.vitalStatus == 'Dead'))
+
+def responseToSurvivalMatrix(response):
+    """Converts a response.csv to a survival matrix expected by scikitsurv."""
+    return Surv.from_dataframe('vitalStatus', 'overallSurvival',
+        pandas.concat([
+            (response.vitalStatus == 'Dead'),
+            response.overallSurvival
+        ], axis=1))
+
+def scoreSC2_auc_with_r(train_survival, test_survival, predicted_estimates):
+    """Score a subchallenge 2 submission, returns AUC."""
+     
+    DAYS = 365
+    auc = cumulative_dynamic_auc(
+        responseToSurvivalMatrix(train_survival),
+        responseToSurvivalMatrix(test_survival),
+        -predicted_estimates.survival.to_numpy(),
+        [DAYS]
+    )
+    return auc[0][0]

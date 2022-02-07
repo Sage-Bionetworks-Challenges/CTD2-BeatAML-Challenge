@@ -6,7 +6,13 @@ library(reshape2)
 library(pacman)
 
 # Synapse setup -- using reticulate because synasper has problems.
-## use_condaenv("py37")
+# Follow directions for installed challengerutils here: https://github.com/Sage-Bionetworks/challengerutils
+# conda create  -c sebp -c conda-forge -n challenge python=3.7 lifelines scikit-survival scipy
+## # conda create -n challenge python=3.7 lifelines scikit-survival scipy
+# pip install challengeutils
+## conda install -c conda-forge lifelines
+use_condaenv("challenge")
+# remotes::install_github("Sage-Bionetworks/challengerutils")
 synapseclient <- reticulate::import('synapseclient')
 utils <- reticulate::import('challengeutils.utils')
 
@@ -36,6 +42,39 @@ sub.mat <- lapply(submissions2$prediction_fileid, function(sub) {
 }) %>%
   as.data.frame()
 
+# Add several models based on yasin's approach
+model.dir <- "/Users/whitebr/work/sage/beataml-challenge/yasin/beatAMLdreamChallenge/output/"
+
+data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/"
+validation.response.file <- paste0(data.dir, "/validation/response.csv")
+leaderboard.response.file <- paste0(data.dir, "/leaderboard/response.csv")
+training.response.file <- paste0(data.dir, "/training/response.csv")
+
+models <-
+  list(
+       "Base: age + mean AUC" = "coxph-fit-age-grd",
+       "Base: age" = "coxph-fit-age",
+       "ymemari + mean AUC" = "coxph-fit-mean-auc",
+       "Base: mean AUC" = "coxph-fit-mean-auc-only",       
+       "ymemari (uncor)" = "coxph-fit-uncor",
+       "ymemari (uncor + mean AUC)" = "coxph-fit-uncor-grd")
+
+models <-
+  list(
+       "Base: age" = "coxph-fit-age",
+       "ymemari (uncor)" = "coxph-fit-uncor")
+
+
+for(mdl in models) {
+  model.output <- paste0(model.dir, mdl, "_predictions_response.csv")
+  pred <- read.csv(model.output)
+  
+  # order the predictions to match the goldstandard's order
+  temp <- pred[match(gold.sc2$lab_id, pred$lab_id), 2]
+  sub.mat <- cbind(sub.mat, as.numeric(temp))  
+}
+
+
 # Rename the columns with the team/participant names
 sc2.names <- sapply(submissions2$submitterId, function(sub) {
   name <- tryCatch({
@@ -45,7 +84,30 @@ sc2.names <- sapply(submissions2$submitterId, function(sub) {
   })
   return(name)
 })
+sc2.names <- c(as.character(sc2.names), names(models))
+
+flag <- sc2.names == "vchung"
+sc2.names[flag] <- "Base: all data"
+
 colnames(sub.mat) <- sc2.names
+
+auc <- evaluation_queue_query(
+  "select auc from evaluation_9614422 where round == 'final_sub' ORDER BY concordance_index DESC"
+)$auc %>%
+  as.numeric()
+
+names(auc) <- sc2.names[1:length(auc)]
+
+validation_survival <- read.table(validation.response.file, sep=",", header=TRUE)
+leaderboard_survival <- read.table(leaderboard.response.file, sep=",", header=TRUE)
+train_survival <- read.table(training.response.file, sep=",", header=TRUE)
+
+my.auc <-
+  unlist(lapply(1:ncol(sub.mat), function(i) scoreSC2_auc_with_r(train_survival, validation_survival, data.frame(survival = sub.mat[,i]))))
+names(my.auc) <- colnames(sub.mat)  
+
+comp <- data.frame(lab_id = names(auc), auc = as.numeric(auc))
+comp <- merge(comp, data.frame(lab_id = names(my.auc), my.auc = as.numeric(my.auc)))
 
 set.seed(8)
 
@@ -68,40 +130,50 @@ bayes.sc2 <- computeBayesFactor(boot.sc2, 1, T) %>%
   as.data.frame()
 bayes.sc2
 
-auc <- evaluation_queue_query(
-  "select auc from evaluation_9614422 where round == 'final_sub' ORDER BY concordance_index DESC"
-)$auc %>%
-  as.numeric()
+
 
 ## vchung is in here as the baseline
 flag <- colnames(boot.sc2) == "vchung"
-colnames(boot.sc2)[flag] <- "Baseline"
-names(auc) <- colnames(boot.sc2)
+colnames(boot.sc2)[flag] <- "Base: all data"
 
-auc.df <- data.frame(team = names(auc), auc = as.numeric(auc))
+# lvls <- rev(colnames(boot.sc2))
 
-lvls <- rev(colnames(boot.sc2))
+df <- data.frame(team = colnames(boot.sc2), score = as.numeric(colMeans(boot.sc2)))
+o <- order(df$score, decreasing=FALSE)
+df <- df[o,]
+lvls <- df$team
 
 scores <- melt(boot.sc2)
 colnames(scores) <- c("boot", "team", "ci")
 scores$team <- factor(scores$team, levels = lvls)
-auc.df$team <- factor(auc.df$team, levels = lvls)
+scores$fill <- "#56B4E9"
+ties <- c(rownames(bayes.sc2)[1], rownames(bayes.sc2)[bayes.sc2[,1] < 3])
+scores[scores$team %in% ties,"fill"] <- "#9FE600"
 
 source("geom_boxplotMod.R")
 
 ## Plot boxplot
-g1 <- ggplot(data = scores, aes_string(x = "team", y = "ci"))
-g1 <- g1 + geom_boxplotMod(fill = "#56B4E9")
+g1 <- ggplot(data = scores, aes_string(x = "team", y = "ci", fill = "fill"))
+# g1 <- g1 + geom_boxplotMod(fill = "#56B4E9")
+g1 <- g1 + geom_boxplotMod()
 g1 <- g1 + coord_flip()
 g1 <- g1 + xlab("Method")
 g1 <- g1 + ylab("Concordance Index")
 g1 <- g1 + theme(text = element_text(size=18), title = element_text(size = 20),
                  axis.text.x = element_text(angle = 45, hjust = 1),
-		 axis.title.y = element_blank())
+		 axis.title.y = element_blank(),
+		 legend.position = "none")
+
+# auc.df <- data.frame(team = names(auc), auc = as.numeric(auc))
+auc.df <- data.frame(team = names(my.auc), auc = as.numeric(my.auc))
+auc.df <- merge(scores, auc.df, all.x = TRUE)
+auc.df$team <- factor(auc.df$team, levels = lvls)
+auc.df$fill <- "#E69F00"
 
 ## Plot barplot
 g2 <- ggplot(data = auc.df)
 g2 <- g2 + geom_col(aes_string(x = "team", y = "auc"), fill = "#E69F00")
+# g2 <- g2 + geom_col(aes_string(x = "team", y = "auc", fill = "fill"))
 g2 <- g2 + coord_flip()
 g2 <- g2 + xlab("Method")
 g2 <- g2 + ylab("AUC")
