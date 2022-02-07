@@ -2,6 +2,9 @@ library(pacman)
 p_load(ggplot2)
 p_load(ggrepel)
 
+plot.dir <- "plots"
+dir.create(plot.dir)
+
 file <- "multi_uni_plot_data.csv"
 plotData <- read.table(file, sep=",", header=TRUE)
 
@@ -47,7 +50,10 @@ g <- g + geom_text_repel(data=plotData[flag,],
 g <- g + xlab("Joint - Independent\n(Spearman Correlation; Observed vs Predicted)")
 g <- g + ylab("Mean Drug Spearman Correlation")
 print(g)
-ggsave("multi-minus-uni-vs-grd.png")
+ggsave(paste0(plot.dir, "/multi-minus-uni-vs-grd.png"))
+
+print(g)
+ggsave(paste0(plot.dir, "/multi-minus-uni-vs-grd.pdf"))
 }
 
 file <- "inhibitor-stats.tsv"
@@ -92,7 +98,11 @@ g3 <- g3 +theme(text = element_text(size = sz),
 }
 
 pg <- plot_grid(g1, g2, g3, nrow=1, labels="AUTO")
-ggsave("joint-vs-ind-perf.png", width = 14)
+ggsave(paste0(plot.dir, "/joint-vs-ind-perf.png"), width = 14)
+
+ggsave(paste0(plot.dir, "/joint-vs-ind-perf.pdf"), width = 14)
 
 pg <- plot_grid(g1, g2, nrow=1, labels="AUTO")
-ggsave("joint-vs-ind-perf-no-mad.png", width = 14)
+ggsave(paste0(plot.dir, "/joint-vs-ind-perf-no-mad.png"), width = 14)
+
+ggsave(paste0(plot.dir, "/joint-vs-ind-perf-no-mad.pdf"), width = 14)
