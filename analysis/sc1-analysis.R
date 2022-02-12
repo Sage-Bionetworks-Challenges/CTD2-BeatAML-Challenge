@@ -12,6 +12,7 @@ suppressPackageStartupMessages(p_load(plyr))
 suppressPackageStartupMessages(p_load(dplyr))
 suppressPackageStartupMessages(p_load(pvclust))
 suppressPackageStartupMessages(p_load(data.table))
+suppressPackageStartupMessages(p_load(cowplot))
 
 plot.dir <- "plots"
 dir.create(plot.dir)
@@ -47,6 +48,7 @@ suppressPackageStartupMessages(p_load(fingerprint))
 suppressPackageStartupMessages(p_load(reshape2))
 suppressPackageStartupMessages(p_load(ggpubr))
 suppressPackageStartupMessages(p_load(GGally))
+suppressPackageStartupMessages(p_load(ggbeeswarm))
 
 num.cores <- detectCores()
 if(!is.na(num.cores) && (num.cores > 1)) {
@@ -342,6 +344,7 @@ sig.cor.mat.all <- as.data.frame(sig.cor.mat.all)
 drug.cor.mat <- as.data.frame(drug.cor.mat)
 
 training.auc.ranges <- auc.ranges[["training"]]
+validation.auc.ranges <- auc.ranges[["validation"]]
 
 structural.similarity.mat <-
     ldply(fingerprints,
@@ -375,6 +378,7 @@ for(d in all.drugs) {
     if(!(d %in% rownames(structural.similarity.mat))) { structural.similarity.mat[d, ] <- NA }    
     if(!(d %in% names(mean.drug.predictions))) { mean.drug.predictions[d] <- NA }
     if(!(d %in% names(training.auc.ranges))) { training.auc.ranges[d] <- NA }    
+    if(!(d %in% names(validation.auc.ranges))) { validation.auc.ranges[d] <- NA }    
     
 }    
 drug.family.mat <- drug.family.mat[, all.drugs]
@@ -383,6 +387,7 @@ drug.cor.mat <- drug.cor.mat[all.drugs, all.drugs]
 sig.cor.mat.all <- sig.cor.mat.all[all.drugs, all.drugs]
 mean.drug.predictions <- mean.drug.predictions[all.drugs]
 training.auc.ranges <- training.auc.ranges[all.drugs]
+validation.auc.ranges <- validation.auc.ranges[all.drugs]
 num.sig.genes <- colSums(!is.na(sig.cor.mat))
 structural.similarity.mat <- structural.similarity.mat[all.drugs, all.drugs]
 
@@ -467,7 +472,8 @@ drug.clusters <- drug.clusters[, c("inhibitor", "cluster")]
 
 write.table(file="drug-clusters.tsv", drug.clusters, quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
 
-drug.range.tbl <- data.frame(inhibitor = names(training.auc.ranges), range = unname(training.auc.ranges))
+drug.range.tbl <- data.frame(inhibitor = names(training.auc.ranges), training.range = unname(training.auc.ranges))
+drug.range.tbl <- merge(drug.range.tbl, data.frame(inhibitor = names(validation.auc.ranges), validation.range = unname(validation.auc.ranges)))
 mean.perf.tbl <- data.frame(inhibitor = names(mean.drug.predictions), mean.correlation = unname(mean.drug.predictions))
 
 multi.vs.uni.df <- data.frame(inhibitor = names(multi_vs_uni_variate), multi.vs.uni = as.vector(multi_vs_uni_variate))
@@ -487,7 +493,7 @@ g1 <- g1 + geom_boxplot(aes(x = cluster, y = mean.correlation))
 g1 <- g1 + ylab("Mean Pearson Correlation\n(over Teams)")
 
 g2 <- ggplot(data = all.tbl)
-g2 <- g2 + geom_boxplot(aes(x = cluster, y = range))
+g2 <- g2 + geom_boxplot(aes(x = cluster, y = training.range))
 g2 <- g2 + ylab("Dynamic Range\n(AUC MAD over Samples)")
 
 g3 <- ggplot(data = all.tbl)
@@ -534,7 +540,7 @@ g1 <- g1 + geom_boxplot(aes(x = cluster, y = mean.correlation))
 g1 <- g1 + ylab("Mean Pearson Correlation\n(over Teams)")
 
 g2 <- ggplot(data = all.tbl)
-g2 <- g2 + geom_boxplot(aes(x = cluster, y = range))
+g2 <- g2 + geom_boxplot(aes(x = cluster, y = training.range))
 g2 <- g2 + ylab("Dynamic Range\n(AUC MAD over Samples)")
 
 png(paste0(plot.dir, "/sc1-training-clusters-vs-validation-performance.png"))
@@ -556,7 +562,7 @@ g1 <- ggboxplot(data = all.tbl, x = "cluster", y = "mean.correlation")
 g1 <- g1 + ylab("Mean Pearson Correlation\n(over Teams)")
 g1 <- g1 + stat_compare_means(comparison = my_comparisons)
 
-g2 <- ggboxplot(data = all.tbl, x = "cluster", y = "range")
+g2 <- ggboxplot(data = all.tbl, x = "cluster", y = "training.range")
 g2 <- g2 + ylab("Dynamic Range\n(AUC MAD over Samples)")
 g2 <- g2 + stat_compare_means(comparison = my_comparisons)
 
@@ -579,21 +585,79 @@ klaeger.targets <- read.csv.from.synapse(klaeger.targets.synId, sep="\t", header
 
 ki.tbl <- merge(all.tbl, klaeger.reconciled, by.x = c("inhibitor", "inhibitor.name"), by.y = c("inhibitor", "inhibitor.name"))
 
-phase.for.grd <- "validation"
-# phase.for.grd <- "training"
-# phase.for.grd <- "leaderboard"
-grd <- rowMeans(aucs[[phase.for.grd]], na.rm=TRUE)
-drugs <- colnames(aucs[[phase.for.grd]])
-names(drugs) <- drugs
-method = "spearman"
-method = "pearson"
-grd.cors <- ldply(drugs,
-                 .fun = function(drug) data.frame(grd.cor = cor(aucs[[phase.for.grd]][,drug], grd, method=method, use='pairwise.complete.obs')))
-colnames(grd.cors)[1] <- "inhibitor"
+grd.cors <-
+  llply(aucs,
+        .fun = function(aucs.df) {
+                 grd <- rowMeans(aucs.df, na.rm=TRUE)
+                 drugs <- colnames(aucs.df)
+                 names(drugs) <- drugs
+                 method = "spearman"
+                 method = "pearson"
+                 ret.grd.cors <- ldply(drugs,
+                                       .fun = function(drug) data.frame(grd.cor = cor(aucs.df[,drug], grd, method=method, use='pairwise.complete.obs')))
+                 colnames(ret.grd.cors)[1] <- "inhibitor"
+                 ret.grd.cors
+               })
 
-ki.tbl <- merge(ki.tbl, grd.cors, by.x = c("inhibitor.name"), by.y = c("inhibitor"))
+median.grd.cors <-
+  llply(aucs,
+        .fun = function(aucs.df) {
+                 grd <- apply(aucs.df, 1, function(x) median(x, na.rm=TRUE))
+                 drugs <- colnames(aucs.df)
+                 names(drugs) <- drugs
+                 method = "spearman"
+                 method = "pearson"
+                 ret.grd.cors <- ldply(drugs,
+                                       .fun = function(drug) data.frame(grd.cor = cor(aucs.df[,drug], grd, method=method, use='pairwise.complete.obs')))
+                 colnames(ret.grd.cors)[1] <- "inhibitor"
+                 ret.grd.cors
+               })
 
-cols <- c("mean.correlation", "Number.of.targets", "range", "grd.cor")
+all.grd.cors <- list("mean" = grd.cors, "median" = median.grd.cors)
+
+all.grd.plts <- list()
+
+for(met in c("mean", "median")) {
+  all.grd.plts[[met]] <- list()
+for(ds in c("training", "validation")) {
+
+  all.tbl.with.grd <- merge(all.tbl, all.grd.cors[[met]][[ds]], by.x = c("inhibitor.name"), by.y = c("inhibitor"))
+  all.tbl.with.grd$multi.higher <- "FALSE"
+  flag <- !is.na(all.tbl.with.grd$multi.vs.uni) & (all.tbl.with.grd$multi.vs.uni > 0)
+  all.tbl.with.grd[flag,"multi.higher"] <- "TRUE"
+  all.tbl.with.grd$multi.higher <- factor(all.tbl.with.grd$multi.higher, levels = c("TRUE", "FALSE"))
+
+  g <- ggplot()
+  g <- g + geom_violin(data=all.tbl.with.grd, aes(x = multi.higher, y = grd.cor))
+  g <- g + geom_boxplot(data=all.tbl.with.grd, aes(x = multi.higher, y = grd.cor), width = 0.25)
+  g <- g + geom_beeswarm(data=all.tbl.with.grd, aes(x = multi.higher, y = grd.cor))
+  g <- g + xlab("Joint Modeling Performance > Independent Modeling Performance")
+  g <- g + ylab("Drug Response vs Mean Drug Response\n(Pearson Correlation)")
+  all.grd.plts[[met]][[ds]] <- g
+  print(g)
+  ggsave(paste0(plot.dir, "/multi-minus-uni-vs-", ds, "-", met, "-grd-box.png"))
+
+  print(g)
+  ggsave(paste0(plot.dir, "/multi-minus-uni-vs-", ds, "-", met, "-grd-box.pdf"))
+
+  wt <- wilcox.test(grd.cor ~ multi.higher, data=all.tbl.with.grd, alternative="greater")
+
+  cat(paste0(ds, "; ", met, ": Comparing correlation with GRD between those with high vs lower performance in joint vs univariate: wilcox one-sided p-value: ", wt$p.value, "\n"))
+  higher <- subset(all.tbl.with.grd, multi.higher=="TRUE")
+  qs <- as.numeric(quantile(higher$grd.cor,probs=c(0.25,0.5,0.75)))
+  cat(paste0(ds, "; ", met, ": Joint > Uni (n=", nrow(higher), ") correlation with GRD quantiles: 25% = ", qs[1], " 50% = ", qs[2], " 75% = ", qs[3], "\n"))
+  lower <- subset(all.tbl.with.grd, multi.higher=="FALSE")
+  qs <- as.numeric(quantile(lower$grd.cor,probs=c(0.25,0.5,0.75)))
+  cat(paste0(ds, "; ", met, ": Joint > Uni correlation with GRD quantiles: 25% = ", qs[1], " 50% = ", qs[2], " 75% = ", qs[3], "\n"))
+  print(wt)
+}
+}
+
+
+
+ki.tbl <- merge(ki.tbl, grd.cors[["validation"]], by.x = c("inhibitor.name"), by.y = c("inhibitor"))
+
+cols <- c("mean.correlation", "Number.of.targets", "training.range", "grd.cor")
 #upper = list(continuous = wrap("cor", method = "spearman"))
 # Report pearson correlation p-values (which should be the default for ggpairs)
 upper = list(continuous = wrap("cor", method = "pearson"))
@@ -608,9 +672,9 @@ d <- dev.off()
 
 all.cluster.tbl <- ki.tbl %>%
   group_by(cluster) %>%
-  dplyr::summarise(across(c(Number.of.targets, range, grd.cor, mean.correlation), mean, na.rm= TRUE))
+  dplyr::summarise(across(c(Number.of.targets, training.range, grd.cor, mean.correlation), mean, na.rm= TRUE))
 
-cols <- c("mean.correlation", "range", "grd.cor")
+cols <- c("mean.correlation", "training.range", "grd.cor")
 g <- ggpairs(all.cluster.tbl[,cols], columnLabels = c("Performance", "Dynamic Range", "GRD"), lower = list(continuous = "smooth"))
 png(paste0(plot.dir, "/perf-targets-range-grd-cluster.png"))
 print(g)
@@ -709,7 +773,7 @@ plot.correlation <- function(x, y, labels = NULL, colors = NULL, display.r2 = FA
   g
 }
 
-g <- plot.correlation(all.cluster.tbl$mean.correlation, all.cluster.tbl$range)
+g <- plot.correlation(all.cluster.tbl$mean.correlation, all.cluster.tbl$training.range)
 g <- g + xlab("Performance") + ylab("Dynamic Range")
 g
 
@@ -722,10 +786,10 @@ print(g)
 d <- dev.off()
 
 labels <- ki.tbl$inhibitor
-flag <- ki.tbl$Number.of.targets < 25 & ki.tbl$range > 50
+flag <- ki.tbl$Number.of.targets < 25 & ki.tbl$training.range > 50
 labels[!flag] <- "" 
 
-g <- plot.correlation(ki.tbl$Number.of.targets, ki.tbl$range, labels=labels)
+g <- plot.correlation(ki.tbl$Number.of.targets, ki.tbl$training.range, labels=labels)
 g <- g + xlab("Number of Targets") + ylab("Dynamic Range")
 g
 
@@ -745,7 +809,7 @@ pdf(paste0(plot.dir, "/num-targets-vs-range-outliers.pdf"))
 grid.table(subset(drug.families, inhibitor %in% ki.tbl$inhibitor[flag])[, c("inhibitor", "family")], rows = NULL)
 d <- dev.off()
 
-lmf <- lm(formula("mean.correlation ~ 0 + range + Number.of.targets"), data = ki.tbl)
+lmf <- lm(formula("mean.correlation ~ 0 + training.range + Number.of.targets"), data = ki.tbl)
 summary(lmf)
 
 train.models.using.targets <- function(auc.matrix, expr.matrix, drug.targets) {
