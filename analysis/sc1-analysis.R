@@ -655,13 +655,23 @@ for(ds in c("training", "validation")) {
 
 
 
+ki.tbl <- merge(ki.tbl, grd.cors[["training"]], by.x = c("inhibitor.name"), by.y = c("inhibitor"))
+colnames(ki.tbl)[colnames(ki.tbl) == "grd.cor"] <- "training.grd.cor"
 ki.tbl <- merge(ki.tbl, grd.cors[["validation"]], by.x = c("inhibitor.name"), by.y = c("inhibitor"))
+colnames(ki.tbl)[colnames(ki.tbl) == "grd.cor"] <- "validation.grd.cor"
 
-cols <- c("mean.correlation", "Number.of.targets", "training.range", "grd.cor")
+cols <- c("mean.correlation", "Number.of.targets", "training.range", "validation.range", "training.grd.cor", "validation.grd.cor")
 #upper = list(continuous = wrap("cor", method = "spearman"))
 # Report pearson correlation p-values (which should be the default for ggpairs)
 upper = list(continuous = wrap("cor", method = "pearson"))
-g <- ggpairs(ki.tbl[,cols], columnLabels = c("Performance", "Num Targets", "Dynamic Range", "GRD"), upper = upper, lower = list(continuous = "smooth"))
+
+p_load(Hmisc)
+cor.res <- rcorr(as.matrix(ki.tbl[,cols]),type="pearson")
+# write.table(file=paste0(plot.dir, "/perf-targets-range-grd.tsv"), cor(ki.tbl[,cols]), row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(file=paste0(plot.dir, "/perf-targets-range-grd.tsv"), cor.res$r, row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+write.table(file=paste0(plot.dir, "/perf-targets-range-grd-values.tsv"), cor.res$P, row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
+
+g <- ggpairs(ki.tbl[,cols], columnLabels = c("Performance", "Num Targets", "Dynamic Range\n(Training)", "Dynamic Range\n(Validation)", "GRD\n(Training)", "GRD\n(Validation)"), upper = upper, lower = list(continuous = "smooth"))
 png(paste0(plot.dir, "/perf-targets-range-grd.png"))
 print(g)
 d <- dev.off()
@@ -672,9 +682,9 @@ d <- dev.off()
 
 all.cluster.tbl <- ki.tbl %>%
   group_by(cluster) %>%
-  dplyr::summarise(across(c(Number.of.targets, training.range, grd.cor, mean.correlation), mean, na.rm= TRUE))
+  dplyr::summarise(across(c(Number.of.targets, training.range, training.grd.cor, mean.correlation), mean, na.rm= TRUE))
 
-cols <- c("mean.correlation", "training.range", "grd.cor")
+cols <- c("mean.correlation", "training.range", "training.grd.cor")
 g <- ggpairs(all.cluster.tbl[,cols], columnLabels = c("Performance", "Dynamic Range", "GRD"), lower = list(continuous = "smooth"))
 png(paste0(plot.dir, "/perf-targets-range-grd-cluster.png"))
 print(g)

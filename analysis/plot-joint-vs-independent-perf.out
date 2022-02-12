@@ -1,0 +1,46 @@
+88 of 111 drugs (with non-NA) have multi > uni
+Welcome, Brian White!training; mean: Comparing correlation with GRD between those with high vs lower performance in joint vs univariate: wilcox one-sided p-value: 0.0521708473920885
+training; mean: Joint > Uni (n=88) correlation with GRD quantiles: 25% = 0.37787871549178 50% = 0.514893681111007 75% = 0.640662806958357
+training; mean: Joint > Uni correlation with GRD quantiles: 25% = 0.320183104755499 50% = 0.455495645736044 75% = 0.584013044801353
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  grd.cor by multi.higher
+W = 1385, p-value = 0.05217
+alternative hypothesis: true location shift is greater than 0
+
+   inhibitor.name   grd.cor
+48        KI20227 0.5524092
+61        MLN120B 0.4826964
+96         STO609 0.3808056
+98      Sunitinib 0.7667520
+mean grd of multi drugs = 0.545665804223079 vs rest = 0.476325095888052
+   inhibitor.name training.range
+48        KI20227       63.04661
+61        MLN120B       31.69438
+96         STO609       19.65312
+98      Sunitinib       47.01802
+mean training.range of multi drugs = 40.3530315587481 vs rest = 41.339735845227
+validation; mean: Comparing correlation with GRD between those with high vs lower performance in joint vs univariate: wilcox one-sided p-value: 0.0398463515774558
+validation; mean: Joint > Uni (n=88) correlation with GRD quantiles: 25% = 0.387836441045736 50% = 0.555713583388515 75% = 0.698537945079419
+validation; mean: Joint > Uni correlation with GRD quantiles: 25% = 0.28143966426046 50% = 0.440771764293132 75% = 0.633532624825492
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  grd.cor by multi.higher
+W = 1404, p-value = 0.03985
+alternative hypothesis: true location shift is greater than 0
+
+   inhibitor.name   grd.cor
+48        KI20227 0.6616098
+61        MLN120B 0.4050656
+96         STO609 0.4230125
+98      Sunitinib 0.8386686
+mean grd of multi drugs = 0.58208909060103 vs rest = 0.487764594192915
+   inhibitor.name validation.range
+48        KI20227         61.36887
+61        MLN120B         37.42945
+96         STO609         28.35764
+98      Sunitinib         52.79434
+mean validation.range of multi drugs = 44.9875730830827 vs rest = 45.086165944425
+method = pearson estimate = 0.494370823719091 pval = 3.49660423618641e-08

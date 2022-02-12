@@ -1,0 +1,75 @@
+Welcome, Brian White!NULL
+Registering 47 cores.
+28 teams submitted to SC1
+Reading expr  syn21212911 
+Reading expr file  /home/whitebr/.synapseCache/605/46802605/rnaseq.csv 
+Done reading expr file  /home/whitebr/.synapseCache/605/46802605/rnaseq.csv 
+Reading /home/whitebr/.synapseCache/918/64820918/training_gene_symbol_expr_cors.csv from synapse
+Done reading /home/whitebr/.synapseCache/918/64820918/training_gene_symbol_expr_cors.csv from synapse
+Reading /home/whitebr/.synapseCache/986/83033986/klaeger-drug-harmonization-table-most.global.tsv from synapse
+Done reading /home/whitebr/.synapseCache/986/83033986/klaeger-drug-harmonization-table-most.global.tsv from synapse
+Reading /home/whitebr/.synapseCache/355/83034355/klaeger-targets.tsv from synapse
+Done reading /home/whitebr/.synapseCache/355/83034355/klaeger-targets.tsv from synapse
+training; mean: Comparing correlation with GRD between those with high vs lower performance in joint vs univariate: wilcox one-sided p-value: 0.0424916274321879
+training; mean: Joint > Uni (n=87) correlation with GRD quantiles: 25% = 0.382698361072644 50% = 0.52017366175576 75% = 0.640979385040587
+training; mean: Joint > Uni correlation with GRD quantiles: 25% = 0.320183104755499 50% = 0.455495645736044 75% = 0.584013044801353
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  grd.cor by multi.higher
+W = 1384, p-value = 0.04249
+alternative hypothesis: true location shift is greater than 0
+
+validation; mean: Comparing correlation with GRD between those with high vs lower performance in joint vs univariate: wilcox one-sided p-value: 0.0329984219356616
+validation; mean: Joint > Uni (n=87) correlation with GRD quantiles: 25% = 0.391902166444047 50% = 0.556168083448566 75% = 0.699876235719422
+validation; mean: Joint > Uni correlation with GRD quantiles: 25% = 0.28143966426046 50% = 0.440771764293132 75% = 0.633532624825492
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  grd.cor by multi.higher
+W = 1401, p-value = 0.033
+alternative hypothesis: true location shift is greater than 0
+
+training; median: Comparing correlation with GRD between those with high vs lower performance in joint vs univariate: wilcox one-sided p-value: 0.0431126294933023
+training; median: Joint > Uni (n=87) correlation with GRD quantiles: 25% = 0.368142594418368 50% = 0.505429668820384 75% = 0.660915224891294
+training; median: Joint > Uni correlation with GRD quantiles: 25% = 0.32161962536869 50% = 0.458444262351984 75% = 0.559639922555309
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  grd.cor by multi.higher
+W = 1383, p-value = 0.04311
+alternative hypothesis: true location shift is greater than 0
+
+validation; median: Comparing correlation with GRD between those with high vs lower performance in joint vs univariate: wilcox one-sided p-value: 0.0287270400373226
+validation; median: Joint > Uni (n=87) correlation with GRD quantiles: 25% = 0.400853780028289 50% = 0.587485387772009 75% = 0.711609590148715
+validation; median: Joint > Uni correlation with GRD quantiles: 25% = 0.258190514228467 50% = 0.468442902566928 75% = 0.615788389075914
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  grd.cor by multi.higher
+W = 1410, p-value = 0.02873
+alternative hypothesis: true location shift is greater than 0
+
+method = pearson estimate = 0.448460604526359 pval = 0.312859429192628
+method = pearson estimate = 0.337933184251575 pval = 0.00827262025494789
+
+Call:
+lm(formula = formula("mean.correlation ~ 0 + training.range + Number.of.targets"), 
+    data = ki.tbl)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.36334 -0.08991  0.00628  0.09402  0.27666 
+
+Coefficients:
+                   Estimate Std. Error t value Pr(>|t|)    
+training.range    0.0065597  0.0006282  10.441 6.11e-15 ***
+Number.of.targets 0.0010187  0.0008306   1.226    0.225    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.1298 on 58 degrees of freedom
+Multiple R-squared:  0.8546,	Adjusted R-squared:  0.8496 
+F-statistic: 170.5 on 2 and 58 DF,  p-value: < 2.2e-16
+
+Stopping here
