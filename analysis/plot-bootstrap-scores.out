@@ -1,6 +1,6 @@
 Welcome, Brian White!NULL
 Registering 47 cores.
-Create CSV FileHandle [##########----------]50.00%   222044/444080       Create CSV FileHandle [####################]100.00%   444080/444080   Done...    Downloading  [########------------]39.07%   8.0MB/20.5MB (14.2MB/s) SYNAPSE_TABLE_QUERY_88306267.csv.synapse_download_88306267     Downloading  [################----]78.13%   16.0MB/20.5MB (28.1MB/s) SYNAPSE_TABLE_QUERY_88306267.csv.synapse_download_88306267     Downloading  [####################]100.00%   20.5MB/20.5MB (35.7MB/s) SYNAPSE_TABLE_QUERY_88306267.csv.synapse_download_88306267 Done...    Loading required package: reticulate
+Loading required package: reticulate
  [1] "gold"          "NAD"           "tttt"          "BCC"          
  [5] "ymemari"       "Team Solid"    "AAUH"          "AML_Belgrade" 
  [9] "TCSS588"       "Signal"        "CompOnc"       "ML-Med"       
@@ -78,35 +78,35 @@ There were 50 or more warnings (use warnings() to see the first 50)
   [1] AAUH          monogenea     CBA           ttu           CompOnc      
   [6] flyingpan     Resham        Clyde_Dixon   huifen        tttt         
  [11] NAD           UM-BISBII-AML DMIS_AML      ML-Med        BioPilot     
- [16] Skoltech      Signal        ymemari       uth-uhel      BCC          
- [21] GrauLab       AML_Belgrade  Team Solid    TCSS588       icbmunich    
- [26] OncoML        BST           skhurana      Baseline      MKL          
- [31] AAUH          monogenea     CBA           ttu           CompOnc      
- [36] flyingpan     Resham        Clyde_Dixon   huifen        tttt         
- [41] NAD           UM-BISBII-AML DMIS_AML      ML-Med        BioPilot     
- [46] Skoltech      Signal        ymemari       uth-uhel      BCC          
- [51] GrauLab       AML_Belgrade  Team Solid    TCSS588       icbmunich    
- [56] OncoML        BST           skhurana      Baseline      MKL          
- [61] AAUH          monogenea     CBA           ttu           CompOnc      
- [66] flyingpan     Resham        Clyde_Dixon   huifen        tttt         
- [71] NAD           UM-BISBII-AML DMIS_AML      ML-Med        BioPilot     
- [76] Skoltech      Signal        ymemari       uth-uhel      BCC          
- [81] GrauLab       AML_Belgrade  Team Solid    TCSS588       icbmunich    
- [86] OncoML        BST           skhurana      Baseline      MKL          
- [91] AAUH          monogenea     CBA           ttu           CompOnc      
- [96] flyingpan     Resham        Clyde_Dixon   huifen        tttt         
-[101] NAD           UM-BISBII-AML DMIS_AML      ML-Med        BioPilot     
-[106] Skoltech      Signal        ymemari       uth-uhel      BCC          
-[111] GrauLab       AML_Belgrade  Team Solid    TCSS588       icbmunich    
-[116] OncoML        BST           skhurana      Baseline      MKL          
-30 Levels: BST OncoML icbmunich TCSS588 Team Solid AML_Belgrade GrauLab ... AAUH
+ [16] Skoltech      ymemari       uth-uhel      BCC           GrauLab      
+ [21] AML_Belgrade  Team Solid    TCSS588       icbmunich     OncoML       
+ [26] BST           skhurana      Baseline      MKL           AAUH         
+ [31] monogenea     CBA           ttu           CompOnc       flyingpan    
+ [36] Resham        Clyde_Dixon   huifen        tttt          NAD          
+ [41] UM-BISBII-AML DMIS_AML      ML-Med        BioPilot      Skoltech     
+ [46] ymemari       uth-uhel      BCC           GrauLab       AML_Belgrade 
+ [51] Team Solid    TCSS588       icbmunich     OncoML        BST          
+ [56] skhurana      Baseline      MKL           AAUH          monogenea    
+ [61] CBA           ttu           CompOnc       flyingpan     Resham       
+ [66] Clyde_Dixon   huifen        tttt          NAD           UM-BISBII-AML
+ [71] DMIS_AML      ML-Med        BioPilot      Skoltech      ymemari      
+ [76] uth-uhel      BCC           GrauLab       AML_Belgrade  Team Solid   
+ [81] TCSS588       icbmunich     OncoML        BST           skhurana     
+ [86] Baseline      MKL           AAUH          monogenea     CBA          
+ [91] ttu           CompOnc       flyingpan     Resham        Clyde_Dixon  
+ [96] huifen        tttt          NAD           UM-BISBII-AML DMIS_AML     
+[101] ML-Med        BioPilot      Skoltech      ymemari       uth-uhel     
+[106] BCC           GrauLab       AML_Belgrade  Team Solid    TCSS588      
+[111] icbmunich     OncoML        BST           skhurana      Baseline     
+[116] MKL          
+29 Levels: BST OncoML icbmunich TCSS588 Team Solid AML_Belgrade GrauLab ... AAUH
  [1] "BST"           "OncoML"        "icbmunich"     "TCSS588"      
  [5] "Team Solid"    "AML_Belgrade"  "GrauLab"       "BCC"          
- [9] "uth-uhel"      "Signal"        "ymemari"       "Skoltech"     
-[13] "BioPilot"      "ML-Med"        "DMIS_AML"      "UM-BISBII-AML"
-[17] "MKL"           "NAD"           "Baseline"      "skhurana"     
-[21] "tttt"          "huifen"        "Clyde_Dixon"   "Resham"       
-[25] "flyingpan"     "CompOnc"       "ttu"           "CBA"          
-[29] "monogenea"     "AAUH"         
+ [9] "uth-uhel"      "ymemari"       "Skoltech"      "BioPilot"     
+[13] "ML-Med"        "DMIS_AML"      "UM-BISBII-AML" "MKL"          
+[17] "NAD"           "Baseline"      "skhurana"      "tttt"         
+[21] "huifen"        "Clyde_Dixon"   "Resham"        "flyingpan"    
+[25] "CompOnc"       "ttu"           "CBA"           "monogenea"    
+[29] "AAUH"         
 Warning message:
 In dir.create(plot.dir) : 'plots' already exists

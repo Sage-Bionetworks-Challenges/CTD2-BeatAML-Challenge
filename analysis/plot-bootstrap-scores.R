@@ -90,7 +90,8 @@ source("geom_boxplotMod.R")
 ## skhurana just submitted the baseline
 ## teams.to.drop <- c("skhurana", "gold")
 ## but let's not drop it
-teams.to.drop <- c("gold")
+## Signal and ymemari are the same (empirically, they have identical scores)
+teams.to.drop <- c("gold", "Signal")
 
 ## Read in the annotations; keep only the columns of interest; encode them as characters (not levels); and translate the names
 suppressPackageStartupMessages(p_load(xlsx))

@@ -4,7 +4,7 @@ Welcome, Brian White!NULL
 Registering 47 cores.
 Warning message:
 NAs introduced by coercion 
-28 teams submitted to SC1
+27 teams submitted to SC1
 Teams: AAUH
  Teams: AML_Belgrade
  Teams: Bioinformatics_Class_Challenge
@@ -23,7 +23,6 @@ Teams: AAUH
  Teams: NAD
  Teams: OncoML
  Teams: Resham
- Teams: Signal
  Teams: skhurana
  Teams: Skoltech
  Teams: TCSS588
@@ -33,149 +32,148 @@ Teams: AAUH
  Teams: UM-BISBII-AML
  Teams: uth-uhel
  Teams: ymemari
-Number of high outliers: 12
-Number of teams w/ high outliers: 11
-Number of teams w/ multiple high-outliers: 1
-Number of low outliers: 178
-Number of teams w/ low outliers: 15
-Number of teams w/ multiple low-outliers: 12
+Number of high outliers: 11
+Number of teams w/ high outliers: 9
+Number of teams w/ multiple high-outliers: 2
+Number of low outliers: 175
+Number of teams w/ low outliers: 14
+Number of teams w/ multiple low-outliers: 11
                              team num.high.outliers num.low.outliers
 1                            AAUH                 1               NA
-2                             BST                 1               58
+2                             BST                 1               60
 3                             CBA                 2               NA
-4                        DMIS_AML                 1                1
-5                       flyingpan                 1               NA
-6                         GrauLab                 1               10
-7                          OncoML                 1               41
-8                          Signal                 1                3
-9                        skhurana                 1               NA
-10                           tttt                 1               NA
-11                        ymemari                 1                3
-12                   AML_Belgrade                NA                4
-13 Bioinformatics_Class_Challenge                NA                3
-14                       BioPilot                NA                3
-15                      icbmunich                NA               20
-16                         ML-Med                NA                1
-17                       Skoltech                NA                1
-18                        TCSS588                NA               17
-19                     Team Solid                NA                9
-20                       uth-uhel                NA                4
+4                       flyingpan                 1               NA
+5                         GrauLab                 1                9
+6                          OncoML                 1               40
+7                        skhurana                 1               NA
+8                            tttt                 1               NA
+9                         ymemari                 2                4
+10                   AML_Belgrade                NA                3
+11 Bioinformatics_Class_Challenge                NA                2
+12                       BioPilot                NA                3
+13                       DMIS_AML                NA                1
+14                      icbmunich                NA               19
+15                         ML-Med                NA                1
+16                       Skoltech                NA                1
+17                        TCSS588                NA               18
+18                     Team Solid                NA               10
+19                       uth-uhel                NA                4
    inhibitor spearman.diff pearson.diff
-1 Venetoclax     0.1112442    0.1471085
+1 Venetoclax      0.111247    0.1461869
                      inhibitor spearman.diff  pearson.diff
-1                   Venetoclax  1.112442e-01  0.1471085450
-113                        JQ1  7.265675e-02 -0.0408454425
-109                     STO609  5.190940e-02  0.1034213814
-4                   Crenolanib  3.050887e-02  0.0388947829
-43                   PRT062607  2.993340e-02 -0.0073862729
-5                    Rapamycin  2.928360e-02  0.0284603153
-81                   Lapatinib  2.328359e-02  0.0534140699
-98                     MLN8054  1.904271e-02  0.0447468052
-61                Flavopiridol  1.640167e-02 -0.0280116753
-75                      SR9011  1.611257e-02  0.0010363947
-38                 Palbociclib  1.538145e-02  0.0556587320
-103                   PD173955  1.459766e-02 -0.0316385423
-12                     MK-2206  1.440440e-02 -0.0040815239
-13         Linifanib (ABT-869)  1.410994e-02 -0.0175928334
-41           RAF265 (CHIR-265)  1.313482e-02  0.0490127986
-110                  Selinexor  1.248885e-02  0.0158604273
-86       Vismodegib (GDC-0449)  1.133238e-02 -0.1140793210
-14                 Midostaurin  1.112831e-02  0.0274513745
-10                   Nilotinib  1.106366e-02 -0.0235501831
-112       Volasertib (BI-6727)  1.065859e-02  0.0252986785
-92                      CYT387  1.014444e-02 -0.0393797507
-30                     SU11274  1.002722e-02  0.0029262031
-83                GSK-1838705A  9.997982e-03  0.0194146323
-100   Ruxolitinib (INCB018424)  9.268862e-03 -0.0746746917
-111                    SGX-523  9.074410e-03 -0.0407862169
-95             JAK Inhibitor I  8.918669e-03  0.0288667812
-52                     XAV-939  8.428435e-03  0.0413024664
-90         Neratinib (HKI-272)  8.039484e-03  0.0218152416
-73       Roscovitine (CYC-202)  7.796947e-03  0.0149774883
-51      Doramapimod (BIRB 796)  7.567135e-03 -0.0059820493
-34                    GDC-0941  7.560038e-03  0.0780138044
-31          Tivozanib (AV-951)  6.981207e-03 -0.0418319627
-40         Ponatinib (AP24534)  6.981062e-03 -0.0073780407
-91                   GSK690693  6.824532e-03  0.0238521829
-9                 Panobinostat  6.196819e-03 -0.0185296264
-101                JNJ-7706621  6.156537e-03 -0.0070447031
-48                   Nutlin 3a  6.035291e-03  0.0942510270
-96         Masitinib (AB-1010)  5.813775e-03  0.0114833305
-99                 Entrectinib  5.799493e-03  0.0508622106
-18        SNS-032 (BMS-387032)  5.690732e-03  0.0126266600
-104               GSK-1904529A  5.475802e-03  0.0506706616
-67                    Imatinib  5.172031e-03 -0.1056398914
-89        Afatinib (BIBW-2992)  5.013996e-03  0.0606305710
-20       Saracatinib (AZD0530)  4.711333e-03 -0.0190462704
-85      Vemurafenib (PLX-4032)  4.488448e-03 -0.0525160438
-21   Regorafenib (BAY 73-4506)  4.402557e-03 -0.0095051190
-55                JNJ-38877605  4.339316e-03  0.0715226255
-29  NF-kB Activation Inhibitor  4.297381e-03  0.0245464792
-87                   SB-431542  4.195027e-03  0.1072537671
-32        Axitinib (AG-013736)  4.146692e-03  0.0351464673
-102    Gilteritinib (ASP-2215)  4.039637e-03  0.0701721488
-37         Bosutinib (SKI-606)  4.029653e-03 -0.0554368100
-79                     PHT-427  4.018799e-03 -0.0814841537
-27                   Dasatinib  3.902985e-03  0.0005504571
-7                   Elesclomol  3.811702e-03  0.0664909607
-17                     KI20227  3.764792e-03 -0.0109827227
-36                   Erlotinib  3.749731e-03 -0.0108103285
-78                Lenalidomide  3.515273e-03  0.1173616582
-107                 CHIR-99021  3.445118e-03  0.0682392094
-76                  Lenvatinib  3.338087e-03  0.0055662739
-15       Selumetinib (AZD6244)  3.325078e-03 -0.0213867104
-46          CI-1040 (PD184352)  3.276236e-03 -0.0327053843
-33                     KW-2449  3.046899e-03 -0.0049188568
-84                  NVP-ADW742  2.978580e-03  0.1696402209
-16                   Sunitinib  2.954423e-03  0.0094276851
-57          Vatalanib (PTK787)  2.860746e-03 -0.0006374741
-11                   LY-333531  2.858158e-03  0.0508703962
-64                    KU-55933  2.819931e-03  0.0575246627
-8                   Idelalisib  2.816320e-03 -0.0509131844
-108                 BMS-345541  2.784287e-03 -0.0455347396
-44         Motesanib (AMG-706)  2.659132e-03  0.0115560852
-63                    Vargetef  2.614108e-03 -0.0522796426
-45                      AT7519  2.597726e-03 -0.0098671732
-60                      YM-155  2.563564e-03  0.1338594781
-53                     INK-128  2.549863e-03 -0.1070420310
-106                    MLN120B  2.382897e-03  0.0334398025
-2        17-AAG (Tanespimycin)  2.378792e-03 -0.0224883497
-58           Foretinib (XL880)  2.374366e-03  0.0042672438
-94                         DBZ  2.200042e-03  0.0454215682
-70                      VX-745  2.191701e-03  0.0789153703
-24                     GW-2580  2.070900e-03 -0.0846735142
-26         Pelitinib (EKB-569)  2.037212e-03 -0.0082566731
-80                 Bay 11-7085  1.966410e-03 -0.0058730509
-71                    A-674563  1.927666e-03 -0.1468682149
-19   Barasertib (AZD1152-HQPA)  1.902220e-03  0.0277533516
-35         Cediranib (AZD2171)  1.805129e-03 -0.0088811495
-88        Bortezomib (Velcade)  1.803312e-03 -0.0933743504
-49                       PP242  1.784700e-03 -0.0292531287
-54        Pazopanib (GW786034)  1.725876e-03  0.0094043242
-62     Tofacitinib (CP-690550)  1.611162e-03 -0.0689534968
-25                   Sorafenib  1.611021e-03  0.0415755530
-97         Alisertib (MLN8237)  1.474686e-03 -0.0323030226
-28     Trametinib (GSK1120212)  1.351739e-03  0.0142644502
-56     Crizotinib (PF-2341066)  1.289895e-03  0.0275897302
-66                  PHA-665752  1.255201e-03  0.0178908385
-93        Canertinib (CI-1033)  1.247095e-03 -0.0577592019
-3                 JNJ-28312141  1.233361e-03  0.0176576957
-72         Vandetanib (ZD6474)  1.169938e-03  0.0679247504
-23                    MGCD-265  1.089896e-03  0.1094749389
-74                  NVP-TAE684  1.065214e-03 -0.0219023259
-82                  Lovastatin  1.021531e-03 -0.0655019824
-59                      PI-103  8.388702e-04 -0.0462761795
-39     Entospletinib (GS-9973)  8.003000e-04 -0.0271650213
-22                Cabozantinib  7.953922e-04 -0.0263313119
-47         Quizartinib (AC220)  7.041615e-04 -0.0231973246
-105                    AZD1480  5.569886e-04 -0.0568460995
-69         Tozasertib (VX-680)  5.260082e-04  0.0697630736
-6         Dovitinib (CHIR-258)  4.817124e-04  0.0224034856
-50       Ibrutinib (PCI-32765)  4.423752e-04  0.0297373071
-42                      BEZ235  4.306500e-04  0.0175797523
-68                     S31-201  4.091175e-04  0.0301740221
-77                   Gefitinib  3.850601e-04 -0.0082196754
-65                   TG100-115  1.767742e-05  0.0121912868
+1                   Venetoclax  0.1112469953  0.1461869478
+113                        JQ1  0.0757427153 -0.0421264573
+109                     STO609  0.0458649276  0.0785637099
+5                    Rapamycin  0.0329208527  0.0524758788
+43                   PRT062607  0.0243624842 -0.0069543735
+14                 Midostaurin  0.0208702573  0.0332864287
+98                     MLN8054  0.0206422274  0.0554073801
+103                   PD173955  0.0203614905  0.0189950209
+111                  Selinexor  0.0165932072  0.0115227454
+42         Ponatinib (AP24534)  0.0164710466  0.0507793279
+112                    SGX-523  0.0149365231 -0.0126933174
+52                     XAV-939  0.0148881848 -0.0561891268
+80                Lenalidomide  0.0142645607  0.0257915549
+91         Neratinib (HKI-272)  0.0139754506 -0.0567583933
+60                Flavopiridol  0.0138434946 -0.1690207509
+99                 Entrectinib  0.0129249922 -0.0284656419
+81                   Lapatinib  0.0126794258  0.0556443518
+94        Canertinib (CI-1033)  0.0118650859 -0.0094143064
+3                   Crenolanib  0.0115912822 -0.0169143746
+10                  Idelalisib  0.0101935432 -0.0933319983
+84                  NVP-ADW742  0.0098760438  0.1048672326
+30                     SU11274  0.0095807701 -0.0375290570
+22   Regorafenib (BAY 73-4506)  0.0094039892  0.0260634980
+38                 Palbociclib  0.0093765243  0.0522618290
+11                   LY-333531  0.0088815852  0.0566761558
+85       Vismodegib (GDC-0449)  0.0087705307  0.0687489699
+35         Cediranib (AZD2171)  0.0087168222 -0.0122252288
+4                 JNJ-28312141  0.0087149692  0.0524844320
+39     Entospletinib (GS-9973)  0.0085262103 -0.0344277822
+7         Dovitinib (CHIR-258)  0.0082723761  0.0411154945
+12                     MK-2206  0.0080983281 -0.0057064564
+74         Vandetanib (ZD6474)  0.0077249074  0.0578452968
+75                      SR9011  0.0074298106  0.0008667538
+8                 Panobinostat  0.0068098054 -0.0143297192
+90                   SB-431542  0.0067673567  0.0693579589
+32          Tivozanib (AV-951)  0.0067385569 -0.0137394149
+36                   Erlotinib  0.0066412378 -0.0033530173
+106                    MLN120B  0.0063989484  0.0148297397
+49      Doramapimod (BIRB 796)  0.0062475007  0.0040523299
+96         Alisertib (MLN8237)  0.0059060568 -0.0023960855
+6                   Elesclomol  0.0058694998 -0.0235521526
+82                  Lovastatin  0.0057681840 -0.0667511363
+97         Masitinib (AB-1010)  0.0056889425 -0.0278903831
+33                     KW-2449  0.0054507868 -0.0056203278
+78                 Bay 11-7085  0.0054018534  0.0774741078
+17                   Sunitinib  0.0053042215 -0.0033553063
+2        17-AAG (Tanespimycin)  0.0050278518 -0.0041638391
+63                    Vargetef  0.0047861377 -0.0307949612
+70                      YM-155  0.0047398455  0.0771254247
+34                    GDC-0941  0.0046151183  0.0851937090
+20       Saracatinib (AZD0530)  0.0043339647 -0.0273179299
+83                GSK-1838705A  0.0042300728  0.0232699894
+45                      AT7519  0.0042219798 -0.0491591019
+28     Trametinib (GSK1120212)  0.0042065013  0.0173643400
+88                   GSK690693  0.0041965372  0.0184740709
+55                     INK-128  0.0041226554 -0.0255649978
+57           Foretinib (XL880)  0.0037278374 -0.0009252731
+95             JAK Inhibitor I  0.0035767917  0.0311937037
+21   Barasertib (AZD1152-HQPA)  0.0035682426  0.0089408122
+105               GSK-1904529A  0.0031411413 -0.0002986553
+73                  NVP-TAE684  0.0031068797 -0.0822762703
+87        Afatinib (BIBW-2992)  0.0030677434  0.0801278605
+92                         DBZ  0.0030088571  0.1087999900
+51       Ibrutinib (PCI-32765)  0.0029523175  0.0238941518
+76                  Lenvatinib  0.0028519575  0.0049605460
+69                    A-674563  0.0027411598 -0.1373129232
+15       Selumetinib (AZD6244)  0.0027148598 -0.0156165532
+56     Crizotinib (PF-2341066)  0.0026447013  0.0228130844
+58                      PI-103  0.0026088693 -0.0043698400
+72       Roscovitine (CYC-202)  0.0025737314  0.0184986854
+68         Tozasertib (VX-680)  0.0024547049  0.1652394143
+47         Motesanib (AMG-706)  0.0024013607 -0.0301410836
+13         Linifanib (ABT-869)  0.0023993356 -0.0221891026
+24                     GW-2580  0.0023462028 -0.0826991390
+93                      CYT387  0.0023334198 -0.0468672866
+9                    Nilotinib  0.0022997005  0.0633381839
+19                    MGCD-265  0.0022442285  0.0508925396
+29  NF-kB Activation Inhibitor  0.0020635444  0.0181457777
+44          CI-1040 (PD184352)  0.0020156797 -0.0029916847
+101   Ruxolitinib (INCB018424)  0.0019269389 -0.0991580292
+40           RAF265 (CHIR-265)  0.0019071642  0.0475988040
+41                      BEZ235  0.0018623380 -0.0276393637
+62     Tofacitinib (CP-690550)  0.0018538722 -0.0634258498
+26                   Dasatinib  0.0018241167 -0.0298828699
+67                    Imatinib  0.0017557204 -0.0971034585
+53                JNJ-38877605  0.0017534805  0.0006673289
+54        Pazopanib (GW786034)  0.0017532408  0.1001045561
+48         Quizartinib (AC220)  0.0017445718  0.0704551165
+23         Pelitinib (EKB-569)  0.0016818925  0.0527475063
+66                   TG100-115  0.0016495304  0.0320340292
+61                     S31-201  0.0014857424  0.1303718644
+18        SNS-032 (BMS-387032)  0.0014811135 -0.0151936887
+102    Gilteritinib (ASP-2215)  0.0014346715  0.0677492717
+46                   Nutlin 3a  0.0014285216  0.0484781951
+31        Axitinib (AG-013736)  0.0013839458  0.0491108661
+107                 CHIR-99021  0.0012912297  0.0888297017
+89        Bortezomib (Velcade)  0.0012871975 -0.1056220124
+71                      VX-745  0.0012857978 -0.0211750500
+37         Bosutinib (SKI-606)  0.0010458642 -0.0638042766
+108                 BMS-345541  0.0009836374 -0.0464617096
+59          Vatalanib (PTK787)  0.0009739405  0.0994299973
+27                   Sorafenib  0.0008769456  0.0321033868
+65                  PHA-665752  0.0007707356 -0.0076562333
+64                    KU-55933  0.0007315751  0.0501789257
+100                JNJ-7706621  0.0007129894  0.0896964674
+25                Cabozantinib  0.0006666226  0.0284927539
+104                    AZD1480  0.0006556095 -0.0542938330
+50                       PP242  0.0006436098 -0.0334718934
+77                   Gefitinib  0.0005377146  0.0326274271
+16                     KI20227  0.0003948596 -0.0074930062
+86      Vemurafenib (PLX-4032)  0.0003604697 -0.1597798275
+79                     PHT-427  0.0001170504 -0.1128118972
+110       Volasertib (BI-6727)  0.0000000000  0.0243816047
 Reading expr  syn21212911 
 Reading expr file  /home/whitebr/.synapseCache/605/46802605/rnaseq.csv 
 Done reading expr file  /home/whitebr/.synapseCache/605/46802605/rnaseq.csv 
@@ -265,7 +263,7 @@ Num unique kinase inhibitors: 60
 Len of kinase inhibitor table: 60
 `geom_smooth()` using formula 'y ~ x'
 `geom_smooth()` using formula 'y ~ x'
-method = pearson estimate = 0.448460604526359 pval = 0.312859429192628
+method = pearson estimate = 0.434503057461442 pval = 0.329976037710864
 `geom_smooth()` using formula 'y ~ x'
 `geom_smooth()` using formula 'y ~ x'
 `geom_smooth()` using formula 'y ~ x'
@@ -291,18 +289,18 @@ lm(formula = formula("mean.correlation ~ 0 + training.range + Number.of.targets"
 
 Residuals:
      Min       1Q   Median       3Q      Max 
--0.36334 -0.08991  0.00628  0.09402  0.27666 
+-0.36060 -0.08783  0.00531  0.09742  0.27620 
 
 Coefficients:
                    Estimate Std. Error t value Pr(>|t|)    
-training.range    0.0065597  0.0006282  10.441 6.11e-15 ***
-Number.of.targets 0.0010187  0.0008306   1.226    0.225    
+training.range    0.0065345  0.0006261  10.436 6.23e-15 ***
+Number.of.targets 0.0010322  0.0008278   1.247    0.217    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 0.1298 on 58 degrees of freedom
-Multiple R-squared:  0.8546,	Adjusted R-squared:  0.8496 
-F-statistic: 170.5 on 2 and 58 DF,  p-value: < 2.2e-16
+Residual standard error: 0.1293 on 58 degrees of freedom
+Multiple R-squared:  0.8549,	Adjusted R-squared:  0.8499 
+F-statistic: 170.9 on 2 and 58 DF,  p-value: < 2.2e-16
 
 Stopping here
 Error: stop

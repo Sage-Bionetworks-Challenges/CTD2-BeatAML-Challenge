@@ -129,7 +129,9 @@ validation.result.tbl <- synTableQuery(paste0("SELECT * FROM ", synId))
 validation.result.tbl <- validation.result.tbl$asDataFrame()
 
 ## Exclude "gold" (which must mean gold-standard because its pearson and spearman = 1)
-validation.result.tbl <- subset(validation.result.tbl, team != "gold")
+## Signal and ymemari are the same (empirically, they have identical scores)
+teams.to.drop <- c("gold", "Signal")
+validation.result.tbl <- subset(validation.result.tbl, !(team %in% teams.to.drop))
 validation.result.tbl$pearson <- as.numeric(validation.result.tbl$pearson)
 validation.result.tbl$spearman <- as.numeric(validation.result.tbl$spearman)
 
@@ -141,6 +143,9 @@ drug.mean.validation.result.tbl <-
     ddply(validation.result.tbl, .variables = c("inhibitor"),
           .fun = function(df) data.frame(pearson = mean(df$pearson, na.rm=TRUE), spearman = mean(df$spearman, na.rm=TRUE)))
 
+o <- order(drug.mean.validation.result.tbl$spearman, decreasing=FALSE)
+drug.mean.validation.result.tbl <- drug.mean.validation.result.tbl[o, ]
+
 summarized.validation.result.tbl <-
   ddply(validation.result.tbl, .variables = c("inhibitor"),
         .fun = function(df) {
@@ -149,6 +154,12 @@ summarized.validation.result.tbl <-
 
 o <- order(summarized.validation.result.tbl$spearman, decreasing=FALSE)
 summarized.validation.result.tbl <- summarized.validation.result.tbl[o, ]
+
+
+write.table(file=paste0(plot.dir, "/mean-drug-perf.tsv"), drug.mean.validation.result.tbl, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
+
+write.table(file=paste0(plot.dir, "/median-drug-perf.tsv"), summarized.validation.result.tbl, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
+
 validation.result.tbl$inhibitor <- factor(validation.result.tbl$inhibitor, levels = summarized.validation.result.tbl$inhibitor)
 
 validation.result.tbl$color <- "black"
@@ -171,6 +182,8 @@ validation.result.tbl <-
     group_by(inhibitor) %>% 
     mutate(high_outlier = is_high_outlier(spearman)) %>%
     mutate(low_outlier = is_low_outlier(spearman)) 
+
+write.table(file=paste0(plot.dir, "/validation-results-with-outliers.tsv"), validation.result.tbl, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
 
 g <- ggplot()
 g <- g + geom_boxplot(data = validation.result.tbl, aes(x = inhibitor, y = spearman), outlier.shape=NA)
