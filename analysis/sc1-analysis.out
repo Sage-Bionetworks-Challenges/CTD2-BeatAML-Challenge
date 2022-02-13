@@ -1,15 +1,220 @@
+Warning message:
+In dir.create(plot.dir) : 'plots' already exists
 Welcome, Brian White!NULL
 Registering 47 cores.
+Warning message:
+NAs introduced by coercion 
 28 teams submitted to SC1
+Teams: AAUH
+ Teams: AML_Belgrade
+ Teams: Bioinformatics_Class_Challenge
+ Teams: BioPilot
+ Teams: BST
+ Teams: CBA
+ Teams: Clyde_Dixon
+ Teams: CompOnc
+ Teams: DMIS_AML
+ Teams: flyingpan
+ Teams: GrauLab
+ Teams: huifen
+ Teams: icbmunich
+ Teams: ML-Med
+ Teams: monogenea
+ Teams: NAD
+ Teams: OncoML
+ Teams: Resham
+ Teams: Signal
+ Teams: skhurana
+ Teams: Skoltech
+ Teams: TCSS588
+ Teams: Team Solid
+ Teams: tttt
+ Teams: ttu
+ Teams: UM-BISBII-AML
+ Teams: uth-uhel
+ Teams: ymemari
+Number of high outliers: 12
+Number of teams w/ high outliers: 11
+Number of teams w/ multiple high-outliers: 1
+Number of low outliers: 178
+Number of teams w/ low outliers: 15
+Number of teams w/ multiple low-outliers: 12
+                             team num.high.outliers num.low.outliers
+1                            AAUH                 1               NA
+2                             BST                 1               58
+3                             CBA                 2               NA
+4                        DMIS_AML                 1                1
+5                       flyingpan                 1               NA
+6                         GrauLab                 1               10
+7                          OncoML                 1               41
+8                          Signal                 1                3
+9                        skhurana                 1               NA
+10                           tttt                 1               NA
+11                        ymemari                 1                3
+12                   AML_Belgrade                NA                4
+13 Bioinformatics_Class_Challenge                NA                3
+14                       BioPilot                NA                3
+15                      icbmunich                NA               20
+16                         ML-Med                NA                1
+17                       Skoltech                NA                1
+18                        TCSS588                NA               17
+19                     Team Solid                NA                9
+20                       uth-uhel                NA                4
+   inhibitor spearman.diff pearson.diff
+1 Venetoclax     0.1112442    0.1471085
+                     inhibitor spearman.diff  pearson.diff
+1                   Venetoclax  1.112442e-01  0.1471085450
+113                        JQ1  7.265675e-02 -0.0408454425
+109                     STO609  5.190940e-02  0.1034213814
+4                   Crenolanib  3.050887e-02  0.0388947829
+43                   PRT062607  2.993340e-02 -0.0073862729
+5                    Rapamycin  2.928360e-02  0.0284603153
+81                   Lapatinib  2.328359e-02  0.0534140699
+98                     MLN8054  1.904271e-02  0.0447468052
+61                Flavopiridol  1.640167e-02 -0.0280116753
+75                      SR9011  1.611257e-02  0.0010363947
+38                 Palbociclib  1.538145e-02  0.0556587320
+103                   PD173955  1.459766e-02 -0.0316385423
+12                     MK-2206  1.440440e-02 -0.0040815239
+13         Linifanib (ABT-869)  1.410994e-02 -0.0175928334
+41           RAF265 (CHIR-265)  1.313482e-02  0.0490127986
+110                  Selinexor  1.248885e-02  0.0158604273
+86       Vismodegib (GDC-0449)  1.133238e-02 -0.1140793210
+14                 Midostaurin  1.112831e-02  0.0274513745
+10                   Nilotinib  1.106366e-02 -0.0235501831
+112       Volasertib (BI-6727)  1.065859e-02  0.0252986785
+92                      CYT387  1.014444e-02 -0.0393797507
+30                     SU11274  1.002722e-02  0.0029262031
+83                GSK-1838705A  9.997982e-03  0.0194146323
+100   Ruxolitinib (INCB018424)  9.268862e-03 -0.0746746917
+111                    SGX-523  9.074410e-03 -0.0407862169
+95             JAK Inhibitor I  8.918669e-03  0.0288667812
+52                     XAV-939  8.428435e-03  0.0413024664
+90         Neratinib (HKI-272)  8.039484e-03  0.0218152416
+73       Roscovitine (CYC-202)  7.796947e-03  0.0149774883
+51      Doramapimod (BIRB 796)  7.567135e-03 -0.0059820493
+34                    GDC-0941  7.560038e-03  0.0780138044
+31          Tivozanib (AV-951)  6.981207e-03 -0.0418319627
+40         Ponatinib (AP24534)  6.981062e-03 -0.0073780407
+91                   GSK690693  6.824532e-03  0.0238521829
+9                 Panobinostat  6.196819e-03 -0.0185296264
+101                JNJ-7706621  6.156537e-03 -0.0070447031
+48                   Nutlin 3a  6.035291e-03  0.0942510270
+96         Masitinib (AB-1010)  5.813775e-03  0.0114833305
+99                 Entrectinib  5.799493e-03  0.0508622106
+18        SNS-032 (BMS-387032)  5.690732e-03  0.0126266600
+104               GSK-1904529A  5.475802e-03  0.0506706616
+67                    Imatinib  5.172031e-03 -0.1056398914
+89        Afatinib (BIBW-2992)  5.013996e-03  0.0606305710
+20       Saracatinib (AZD0530)  4.711333e-03 -0.0190462704
+85      Vemurafenib (PLX-4032)  4.488448e-03 -0.0525160438
+21   Regorafenib (BAY 73-4506)  4.402557e-03 -0.0095051190
+55                JNJ-38877605  4.339316e-03  0.0715226255
+29  NF-kB Activation Inhibitor  4.297381e-03  0.0245464792
+87                   SB-431542  4.195027e-03  0.1072537671
+32        Axitinib (AG-013736)  4.146692e-03  0.0351464673
+102    Gilteritinib (ASP-2215)  4.039637e-03  0.0701721488
+37         Bosutinib (SKI-606)  4.029653e-03 -0.0554368100
+79                     PHT-427  4.018799e-03 -0.0814841537
+27                   Dasatinib  3.902985e-03  0.0005504571
+7                   Elesclomol  3.811702e-03  0.0664909607
+17                     KI20227  3.764792e-03 -0.0109827227
+36                   Erlotinib  3.749731e-03 -0.0108103285
+78                Lenalidomide  3.515273e-03  0.1173616582
+107                 CHIR-99021  3.445118e-03  0.0682392094
+76                  Lenvatinib  3.338087e-03  0.0055662739
+15       Selumetinib (AZD6244)  3.325078e-03 -0.0213867104
+46          CI-1040 (PD184352)  3.276236e-03 -0.0327053843
+33                     KW-2449  3.046899e-03 -0.0049188568
+84                  NVP-ADW742  2.978580e-03  0.1696402209
+16                   Sunitinib  2.954423e-03  0.0094276851
+57          Vatalanib (PTK787)  2.860746e-03 -0.0006374741
+11                   LY-333531  2.858158e-03  0.0508703962
+64                    KU-55933  2.819931e-03  0.0575246627
+8                   Idelalisib  2.816320e-03 -0.0509131844
+108                 BMS-345541  2.784287e-03 -0.0455347396
+44         Motesanib (AMG-706)  2.659132e-03  0.0115560852
+63                    Vargetef  2.614108e-03 -0.0522796426
+45                      AT7519  2.597726e-03 -0.0098671732
+60                      YM-155  2.563564e-03  0.1338594781
+53                     INK-128  2.549863e-03 -0.1070420310
+106                    MLN120B  2.382897e-03  0.0334398025
+2        17-AAG (Tanespimycin)  2.378792e-03 -0.0224883497
+58           Foretinib (XL880)  2.374366e-03  0.0042672438
+94                         DBZ  2.200042e-03  0.0454215682
+70                      VX-745  2.191701e-03  0.0789153703
+24                     GW-2580  2.070900e-03 -0.0846735142
+26         Pelitinib (EKB-569)  2.037212e-03 -0.0082566731
+80                 Bay 11-7085  1.966410e-03 -0.0058730509
+71                    A-674563  1.927666e-03 -0.1468682149
+19   Barasertib (AZD1152-HQPA)  1.902220e-03  0.0277533516
+35         Cediranib (AZD2171)  1.805129e-03 -0.0088811495
+88        Bortezomib (Velcade)  1.803312e-03 -0.0933743504
+49                       PP242  1.784700e-03 -0.0292531287
+54        Pazopanib (GW786034)  1.725876e-03  0.0094043242
+62     Tofacitinib (CP-690550)  1.611162e-03 -0.0689534968
+25                   Sorafenib  1.611021e-03  0.0415755530
+97         Alisertib (MLN8237)  1.474686e-03 -0.0323030226
+28     Trametinib (GSK1120212)  1.351739e-03  0.0142644502
+56     Crizotinib (PF-2341066)  1.289895e-03  0.0275897302
+66                  PHA-665752  1.255201e-03  0.0178908385
+93        Canertinib (CI-1033)  1.247095e-03 -0.0577592019
+3                 JNJ-28312141  1.233361e-03  0.0176576957
+72         Vandetanib (ZD6474)  1.169938e-03  0.0679247504
+23                    MGCD-265  1.089896e-03  0.1094749389
+74                  NVP-TAE684  1.065214e-03 -0.0219023259
+82                  Lovastatin  1.021531e-03 -0.0655019824
+59                      PI-103  8.388702e-04 -0.0462761795
+39     Entospletinib (GS-9973)  8.003000e-04 -0.0271650213
+22                Cabozantinib  7.953922e-04 -0.0263313119
+47         Quizartinib (AC220)  7.041615e-04 -0.0231973246
+105                    AZD1480  5.569886e-04 -0.0568460995
+69         Tozasertib (VX-680)  5.260082e-04  0.0697630736
+6         Dovitinib (CHIR-258)  4.817124e-04  0.0224034856
+50       Ibrutinib (PCI-32765)  4.423752e-04  0.0297373071
+42                      BEZ235  4.306500e-04  0.0175797523
+68                     S31-201  4.091175e-04  0.0301740221
+77                   Gefitinib  3.850601e-04 -0.0082196754
+65                   TG100-115  1.767742e-05  0.0121912868
 Reading expr  syn21212911 
 Reading expr file  /home/whitebr/.synapseCache/605/46802605/rnaseq.csv 
 Done reading expr file  /home/whitebr/.synapseCache/605/46802605/rnaseq.csv 
 Reading /home/whitebr/.synapseCache/918/64820918/training_gene_symbol_expr_cors.csv from synapse
 Done reading /home/whitebr/.synapseCache/918/64820918/training_gene_symbol_expr_cors.csv from synapse
+Warning messages:
+1: In parse.smiles(sm) :
+  1 out of 1 SMILES were not successfully parsed, resulting in NULLs.
+2: In parse.smiles(sm) :
+  1 out of 1 SMILES were not successfully parsed, resulting in NULLs.
+3: In parse.smiles(sm) :
+  1 out of 1 SMILES were not successfully parsed, resulting in NULLs.
+4: In parse.smiles(sm) :
+  1 out of 1 SMILES were not successfully parsed, resulting in NULLs.
+5: In parse.smiles(sm) :
+  1 out of 1 SMILES were not successfully parsed, resulting in NULLs.
+6: In parse.smiles(sm) :
+  1 out of 1 SMILES were not successfully parsed, resulting in NULLs.
+7: In parse.smiles(sm) :
+  1 out of 1 SMILES were not successfully parsed, resulting in NULLs.
+8: In parse.smiles(sm) :
+  1 out of 1 SMILES were not successfully parsed, resulting in NULLs.
+Using cor as value column: use value.var to override.
+Using pearson.cor as value column: use value.var to override.
+Using sim as value column: use value.var to override.
+Warning message:
+Removed 3 rows containing non-finite values (stat_boxplot). 
+Warning message:
+Removed 3 rows containing non-finite values (stat_boxplot). 
+Warning message:
+Removed 3 rows containing non-finite values (stat_boxplot). 
+Warning message:
+Removed 3 rows containing non-finite values (stat_boxplot). 
 Reading /home/whitebr/.synapseCache/986/83033986/klaeger-drug-harmonization-table-most.global.tsv from synapse
 Done reading /home/whitebr/.synapseCache/986/83033986/klaeger-drug-harmonization-table-most.global.tsv from synapse
 Reading /home/whitebr/.synapseCache/355/83034355/klaeger-targets.tsv from synapse
 Done reading /home/whitebr/.synapseCache/355/83034355/klaeger-targets.tsv from synapse
+Saving 7 x 7 in image
+Saving 7 x 7 in image
 training; mean: Comparing correlation with GRD between those with high vs lower performance in joint vs univariate: wilcox one-sided p-value: 0.0424916274321879
 training; mean: Joint > Uni (n=87) correlation with GRD quantiles: 25% = 0.382698361072644 50% = 0.52017366175576 75% = 0.640979385040587
 training; mean: Joint > Uni correlation with GRD quantiles: 25% = 0.320183104755499 50% = 0.455495645736044 75% = 0.584013044801353
@@ -20,6 +225,8 @@ data:  grd.cor by multi.higher
 W = 1384, p-value = 0.04249
 alternative hypothesis: true location shift is greater than 0
 
+Saving 7 x 7 in image
+Saving 7 x 7 in image
 validation; mean: Comparing correlation with GRD between those with high vs lower performance in joint vs univariate: wilcox one-sided p-value: 0.0329984219356616
 validation; mean: Joint > Uni (n=87) correlation with GRD quantiles: 25% = 0.391902166444047 50% = 0.556168083448566 75% = 0.699876235719422
 validation; mean: Joint > Uni correlation with GRD quantiles: 25% = 0.28143966426046 50% = 0.440771764293132 75% = 0.633532624825492
@@ -30,6 +237,8 @@ data:  grd.cor by multi.higher
 W = 1401, p-value = 0.033
 alternative hypothesis: true location shift is greater than 0
 
+Saving 7 x 7 in image
+Saving 7 x 7 in image
 training; median: Comparing correlation with GRD between those with high vs lower performance in joint vs univariate: wilcox one-sided p-value: 0.0431126294933023
 training; median: Joint > Uni (n=87) correlation with GRD quantiles: 25% = 0.368142594418368 50% = 0.505429668820384 75% = 0.660915224891294
 training; median: Joint > Uni correlation with GRD quantiles: 25% = 0.32161962536869 50% = 0.458444262351984 75% = 0.559639922555309
@@ -40,6 +249,8 @@ data:  grd.cor by multi.higher
 W = 1383, p-value = 0.04311
 alternative hypothesis: true location shift is greater than 0
 
+Saving 7 x 7 in image
+Saving 7 x 7 in image
 validation; median: Comparing correlation with GRD between those with high vs lower performance in joint vs univariate: wilcox one-sided p-value: 0.0287270400373226
 validation; median: Joint > Uni (n=87) correlation with GRD quantiles: 25% = 0.400853780028289 50% = 0.587485387772009 75% = 0.711609590148715
 validation; median: Joint > Uni correlation with GRD quantiles: 25% = 0.258190514228467 50% = 0.468442902566928 75% = 0.615788389075914
@@ -50,8 +261,29 @@ data:  grd.cor by multi.higher
 W = 1410, p-value = 0.02873
 alternative hypothesis: true location shift is greater than 0
 
+Num unique kinase inhibitors: 60
+Len of kinase inhibitor table: 60
+`geom_smooth()` using formula 'y ~ x'
+`geom_smooth()` using formula 'y ~ x'
 method = pearson estimate = 0.448460604526359 pval = 0.312859429192628
+`geom_smooth()` using formula 'y ~ x'
+`geom_smooth()` using formula 'y ~ x'
+`geom_smooth()` using formula 'y ~ x'
+Warning message:
+In `[<-.factor`(`*tmp*`, !flag, value = "") :
+  invalid factor level, NA generated
+`geom_smooth()` using formula 'y ~ x'
+`geom_smooth()` using formula 'y ~ x'
 method = pearson estimate = 0.337933184251575 pval = 0.00827262025494789
+`geom_smooth()` using formula 'y ~ x'
+Warning message:
+Removed 55 rows containing missing values (geom_text). 
+`geom_smooth()` using formula 'y ~ x'
+Warning message:
+Removed 55 rows containing missing values (geom_text). 
+`geom_smooth()` using formula 'y ~ x'
+Warning message:
+Removed 55 rows containing missing values (geom_text). 
 
 Call:
 lm(formula = formula("mean.correlation ~ 0 + training.range + Number.of.targets"), 
@@ -73,3 +305,5 @@ Multiple R-squared:  0.8546,	Adjusted R-squared:  0.8496
 F-statistic: 170.5 on 2 and 58 DF,  p-value: < 2.2e-16
 
 Stopping here
+Error: stop
+Execution halted

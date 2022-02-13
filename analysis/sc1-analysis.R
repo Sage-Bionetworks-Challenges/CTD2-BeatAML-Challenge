@@ -135,9 +135,93 @@ validation.result.tbl$spearman <- as.numeric(validation.result.tbl$spearman)
 
 cat(paste0(length(unique(validation.result.tbl$team)), " teams submitted to SC1\n")) 
 
+cat(paste0("Teams: ", paste(sort(unique(validation.result.tbl$team)), sep=", "), "\n"))
+
 drug.mean.validation.result.tbl <-
     ddply(validation.result.tbl, .variables = c("inhibitor"),
           .fun = function(df) data.frame(pearson = mean(df$pearson, na.rm=TRUE), spearman = mean(df$spearman, na.rm=TRUE)))
+
+summarized.validation.result.tbl <-
+  ddply(validation.result.tbl, .variables = c("inhibitor"),
+        .fun = function(df) {
+                 data.frame(spearman = median(as.numeric(df$spearman), na.rm=TRUE), pearson = median(as.numeric(df$pearson), na.rm=TRUE))
+               })
+
+o <- order(summarized.validation.result.tbl$spearman, decreasing=FALSE)
+summarized.validation.result.tbl <- summarized.validation.result.tbl[o, ]
+validation.result.tbl$inhibitor <- factor(validation.result.tbl$inhibitor, levels = summarized.validation.result.tbl$inhibitor)
+
+validation.result.tbl$color <- "black"
+validation.result.tbl[validation.result.tbl$team == "AAUH","color"] <- "red"
+
+is_low_outlier <- function(x) {
+  return(x < quantile(x, 0.25) - 1.5 * IQR(x))
+}
+
+is_high_outlier <- function(x) {
+  return(x > quantile(x, 0.75) + 1.5 * IQR(x))
+}
+
+is_outlier <- function(x) {
+  return(is_low_outlier(x) | is_high_outlier(x))
+}
+
+validation.result.tbl <- 
+    validation.result.tbl %>% 
+    group_by(inhibitor) %>% 
+    mutate(high_outlier = is_high_outlier(spearman)) %>%
+    mutate(low_outlier = is_low_outlier(spearman)) 
+
+g <- ggplot()
+g <- g + geom_boxplot(data = validation.result.tbl, aes(x = inhibitor, y = spearman), outlier.shape=NA)
+g <- g + geom_point(data = subset(validation.result.tbl, high_outlier == TRUE), aes(x = inhibitor, y = spearman, colour = team))
+g <- g + geom_point(data = subset(validation.result.tbl, low_outlier == TRUE), aes(x = inhibitor, y = spearman))
+g <- g + xlab("Inhibitor") + ylab("Spearman Correlation\n(Observed vs Predicted)")
+g <- g + theme(axis.text.y = element_text(size = 4))
+g <- g + labs(colour='Team')
+g <- g + coord_flip()
+g.drug <- g
+
+png(paste0(plot.dir, "/beat-aml-sc1-per-drug-score-distributions.png"))
+print(g.drug)
+d <- dev.off()
+pdf(paste0(plot.dir, "/beat-aml-sc1-per-drug-score-distributions.pdf"))
+print(g.drug)
+d <- dev.off()
+
+cat(paste0("Number of high outliers: ", nrow(subset(validation.result.tbl, high_outlier == TRUE)), "\n"))
+cat(paste0("Number of teams w/ high outliers: ", length(unique(subset(validation.result.tbl, high_outlier == TRUE)$team)), "\n"))
+high.outlier.teams <- as.data.frame(table(subset(validation.result.tbl, high_outlier == TRUE)$team))
+colnames(high.outlier.teams) <- c("team", "num.high.outliers")
+cat(paste0("Number of teams w/ multiple high-outliers: ", nrow(subset(high.outlier.teams, num.high.outliers > 1)), "\n"))
+
+cat(paste0("Number of low outliers: ", nrow(subset(validation.result.tbl, low_outlier == TRUE)), "\n"))
+cat(paste0("Number of teams w/ low outliers: ", length(unique(subset(validation.result.tbl, low_outlier == TRUE)$team)), "\n"))
+low.outlier.teams <- as.data.frame(table(subset(validation.result.tbl, low_outlier == TRUE)$team))
+colnames(low.outlier.teams) <- c("team", "num.low.outliers")
+cat(paste0("Number of teams w/ multiple low-outliers: ", nrow(subset(low.outlier.teams, num.low.outliers > 1)), "\n"))
+outlier.teams <- merge(high.outlier.teams, low.outlier.teams, all=TRUE)
+print(outlier.teams)
+
+write.table(file=paste0(plot.dir, "/outlier-drug-perf.tsv"), outlier.teams, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
+
+indices <- seq(from=nrow(summarized.validation.result.tbl),to=2)
+names(indices) <- summarized.validation.result.tbl[indices,"inhibitor"]
+consecutive.diffs <- 
+   ldply(indices,
+         .fun = function(i) {
+                  data.frame(spearman.diff = summarized.validation.result.tbl[i,"spearman"] - summarized.validation.result.tbl[i-1,"spearman"],
+                             pearson.diff = summarized.validation.result.tbl[i,"pearson"] - summarized.validation.result.tbl[i-1,"pearson"])
+         })
+colnames(consecutive.diffs)[1] <- "inhibitor"
+# Venetoclax has the larger improvement relative to other drugs
+print(consecutive.diffs[which.max(abs(consecutive.diffs$spearman.diff)),])
+o <- order(consecutive.diffs$spearman.diff, decreasing=TRUE)
+consecutive.diffs <- consecutive.diffs[o,]
+print(consecutive.diffs)
+
+write.table(file=paste0(plot.dir, "/drug-perf-differences.tsv"), consecutive.diffs, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
+
 
 
 ## We only use training -- don't read the others, as it takes a lot of time.
@@ -660,6 +744,9 @@ colnames(ki.tbl)[colnames(ki.tbl) == "grd.cor"] <- "training.grd.cor"
 ki.tbl <- merge(ki.tbl, grd.cors[["validation"]], by.x = c("inhibitor.name"), by.y = c("inhibitor"))
 colnames(ki.tbl)[colnames(ki.tbl) == "grd.cor"] <- "validation.grd.cor"
 
+cat(paste0("Num unique kinase inhibitors: ", length(unique(ki.tbl$inhibitor.name)), "\n"))
+cat(paste0("Len of kinase inhibitor table: ", nrow(ki.tbl), "\n"))
+
 cols <- c("mean.correlation", "Number.of.targets", "training.range", "validation.range", "training.grd.cor", "validation.grd.cor")
 #upper = list(continuous = wrap("cor", method = "spearman"))
 # Report pearson correlation p-values (which should be the default for ggpairs)
@@ -671,7 +758,7 @@ cor.res <- rcorr(as.matrix(ki.tbl[,cols]),type="pearson")
 write.table(file=paste0(plot.dir, "/perf-targets-range-grd.tsv"), cor.res$r, row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 write.table(file=paste0(plot.dir, "/perf-targets-range-grd-values.tsv"), cor.res$P, row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 
-g <- ggpairs(ki.tbl[,cols], columnLabels = c("Performance", "Num Targets", "Dynamic Range\n(Training)", "Dynamic Range\n(Validation)", "GRD\n(Training)", "GRD\n(Validation)"), upper = upper, lower = list(continuous = "smooth"))
+g <- ggpairs(ki.tbl[,cols], columnLabels = c("Performance", "Num Targets", "MAD\n(Training)", "MAD\n(Validation)", "GRD\n(Training)", "GRD\n(Validation)"), upper = upper, lower = list(continuous = "smooth"))
 png(paste0(plot.dir, "/perf-targets-range-grd.png"))
 print(g)
 d <- dev.off()
@@ -680,12 +767,23 @@ pdf(paste0(plot.dir, "/perf-targets-range-grd.pdf"))
 print(g)
 d <- dev.off()
 
+
+png(paste0(plot.dir, "/sc1-individ-drug-perf-and-correlates.png"), width = 2 * 480)
+plot_grid(g.drug, ggmatrix_gtable(g), labels="AUTO")
+d <- dev.off()
+
+pdf(paste0(plot.dir, "/sc1-individ-drug-perf-and-correlates.pdf"), width = 2 * 7, onefile=FALSE)
+plot_grid(g.drug, ggmatrix_gtable(g), labels="AUTO")
+d <- dev.off()
+
+
+
 all.cluster.tbl <- ki.tbl %>%
   group_by(cluster) %>%
   dplyr::summarise(across(c(Number.of.targets, training.range, training.grd.cor, mean.correlation), mean, na.rm= TRUE))
 
 cols <- c("mean.correlation", "training.range", "training.grd.cor")
-g <- ggpairs(all.cluster.tbl[,cols], columnLabels = c("Performance", "Dynamic Range", "GRD"), lower = list(continuous = "smooth"))
+g <- ggpairs(all.cluster.tbl[,cols], columnLabels = c("Performance", "MAD", "GRD"), lower = list(continuous = "smooth"))
 png(paste0(plot.dir, "/perf-targets-range-grd-cluster.png"))
 print(g)
 d <- dev.off()
