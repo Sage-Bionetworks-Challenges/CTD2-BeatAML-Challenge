@@ -88,7 +88,9 @@ plot.anno.heatmap.with.multiple.legends <-
 source("geom_boxplotMod.R")
 
 ## skhurana just submitted the baseline
-teams.to.drop <- c("skhurana", "gold")
+## teams.to.drop <- c("skhurana", "gold")
+## but let's not drop it
+teams.to.drop <- c("gold")
 
 ## Read in the annotations; keep only the columns of interest; encode them as characters (not levels); and translate the names
 suppressPackageStartupMessages(p_load(xlsx))
@@ -109,6 +111,10 @@ for(col in anno.cols) {
 ## baseline.name <- "ridge"
 baseline.name <- "Baseline"
 ## Add a row for baseline (ridge) and MKL
+## Drop skhurana, who didn't provide any info, and add back with baseline info (since we see empirically that it is the baseline)
+anno.df <- subset(anno.df, team != "skhurana")
+
+anno.df <- rbind(anno.df, data.frame("team" = "skhurana", "Method" = "Ind", "Expr" = "Yes", "Mut" = "Yes", "Clin" = "Yes"))
 anno.df <- rbind(anno.df, data.frame("team" = baseline.name, "Method" = "Ind", "Expr" = "Yes", "Mut" = "Yes", "Clin" = "Yes"))
 anno.df <- rbind(anno.df, data.frame("team" = "MKL", "Method" = "Joint", "Expr" = "Yes", "Mut" = "Yes", "Clin" = "Yes"))
 flag <- anno.df$team == "Bioinformatics_Class_Challenge"
@@ -191,7 +197,9 @@ if(use.dummy) {
     }) 
     boot.sc1 <- boot.sc1[, -1]
 
+# remotes::install_github("Sage-Bionetworks/challengescoring")
 library(challengescoring)
+# remotes::install_github("Sage-Bionetworks/challengerutils")
 library(challengerutils)
 print(colnames(boot.sc1))
     baseline.indx <- which(colnames(boot.sc1) == "Baseline")
@@ -277,6 +285,15 @@ for.second.legend <- for.second.legend + theme(text = element_text(size = 18))
 legs <- plot_grid(get_legend(for.first.legend), get_legend(for.second.legend), nrow = 2, align = "v", rel_heights = c(1,1))
 pg <- plot_grid(g1, g2, full.plot, legs, nrow=1, align="h", rel_widths = c(3,0.6,0.4,0.5))
 
-png("sc1-scores.png", width = 2 * 480)
+plot.dir <- "plots"
+dir.create(plot.dir)
+
+
+png(paste0(plot.dir, "/sc1-scores.png"), width = 2 * 480)
 print(pg)
 d <- dev.off()
+
+pdf(paste0(plot.dir, "/sc1-scores.pdf"), width = 2 * 480)
+print(pg)
+d <- dev.off()
+
