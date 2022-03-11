@@ -29,6 +29,11 @@ clinical_categorical_t <- read_csv(paste0(input_dir,"clinical_categorical.csv"))
 clinical_numerical_t <- read_csv(paste0(input_dir,"clinical_numerical.csv"))
 clinical_categorical_legend_t <- read_csv(paste0(input_dir,"clinical_categorical_legend.csv"))
 colnames(clinical_categorical_t) <- make.names(colnames(clinical_categorical_t))
+response <- read_csv(paste0(input_dir, "response.csv"))
+
+response$vitalStatus[which(response$vitalStatus=="Alive")] <- 0
+response$vitalStatus[which(response$vitalStatus=="Dead")] <- 1
+response$vitalStatus <- as.numeric(response$vitalStatus)
 
 # drop columns with missing values
 clinical_numerical_t <- clinical_numerical_t %>% select(-c("%.Blasts.in.PB","WBC.Count"))
@@ -56,7 +61,8 @@ sigDE_log2counts_t <- rna_log2counts_t[which(rownames(rna_log2counts_t)
                                          %in% topGenes_rnaseq_t$Gene),]
 rnaseq_pcDat_t <- prcomp(t(sigDE_log2counts_t))
 
-response_data_t <- clinical_categorical_t %>% 
+response_data_t <- response %>%
+  inner_join(clinical_categorical_t, by = "lab_id") %>% 
   inner_join(clinical_numerical_t, by = "lab_id") %>% 
   inner_join(as.data.frame(rnaseq_pcDat_t[["x"]]) %>% 
                select(1:min(5,dim(rnaseq_pcDat_t[["x"]])[2])) %>% 
@@ -72,6 +78,13 @@ response_data_t <- merge(response_data_t, mean.aucs)
 
 rownames(response_data_t)=response_data_t$lab_id
 response_data_t <- response_data_t %>% select(-c("lab_id"))
+
+library(survminer)
+
+out_file=paste0(output_dir,"validation-data-formatted-for-yasin.csv")
+
+write_csv(response_data_t, out_file)
+
 
 apply.model <- function(model.name) {
   # load the model fit
@@ -89,6 +102,20 @@ apply.model <- function(model.name) {
   out_file=paste0(output_dir,model.name,"_predictions_response.csv")
 
   write_csv(output_df, out_file)
+
+  # Re-fit to validation data
+  multiv_formula <- as.formula(paste('Surv(overallSurvival, vitalStatus) ~', 
+                                   paste(names(coefficients(my_coxph)),collapse=" + ")))
+  val_coxph <- coxph(multiv_formula, data = response_data_t)
+  saveRDS(val_coxph, file=paste0(output_dir, model.name, "-validation.rds"))
+
+  ggforest(val_coxph, data=response_data_t, fontsize = 1.05)
+
+  out_file=paste0(output_dir,model.name,"-validation-forest.png")  
+  ggsave(out_file, width = 14)
+
+  out_file=paste0(output_dir,model.name,"-validation-forest.pdf")  
+  ggsave(out_file, width = 14)
 }
 
 for(model in models) {
