@@ -118,12 +118,14 @@ anno.df <- subset(anno.df, team != "skhurana")
 anno.df <- rbind(anno.df, data.frame("team" = "skhurana", "Method" = "Ind", "Expr" = "Yes", "Mut" = "Yes", "Clin" = "Yes"))
 anno.df <- rbind(anno.df, data.frame("team" = baseline.name, "Method" = "Ind", "Expr" = "Yes", "Mut" = "Yes", "Clin" = "Yes"))
 anno.df <- rbind(anno.df, data.frame("team" = "MKL", "Method" = "Joint", "Expr" = "Yes", "Mut" = "Yes", "Clin" = "Yes"))
+anno.df <- rbind(anno.df, data.frame("team" = "Ensemble", "Method" = "Unk", "Expr" = "Yes", "Mut" = "Yes", "Clin" = "Yes"))
 flag <- anno.df$team == "Bioinformatics_Class_Challenge"
 anno.df[flag, "team"] <- "BCC"
 anno.df <- subset(anno.df, !(team %in% teams.to.drop))
 
 ## Begin generate dummy data
 teams <- unique(anno.df$team)
+teams <- teams[teams != "Ensemble"]
 names(teams) <- teams
 n.boot <- 1000
 use.dummy <- FALSE
@@ -198,6 +200,30 @@ if(use.dummy) {
     }) 
     boot.sc1 <- boot.sc1[, -1]
 
+    # Only include in the ensemble teams that output AUCs
+    # A few teams did not:
+    teams.not.in.ensemble <- names(which(colMeans(pred.mat.sc1[,teams]) < 100))
+    cat(paste0("Teams to exclude from Ensemble: ", paste(teams.not.in.ensemble, collapse=", "), "\n"))
+    teams.in.ensemble <- names(which(colMeans(pred.mat.sc1[,teams]) > 100))
+
+    ensemble.pred.sc1 <- function(preds) {
+      rowMeans(preds) 
+    }
+
+    ens.pred <- ensemble.pred.sc1(pred.mat.sc1[, teams.in.ensemble])
+    ens.df <- data.frame("inhibitor" = pred.mat.sc1$inhibitor, "gold" = pred.mat.sc1$gold, "Ensemble" = as.vector(ens.pred))
+    ens.pearson <- sc1_metric(ens.df, "pearson")
+    ens.spearman <- sc1_metric(ens.df, "spearman")
+
+    ens.boot.sc1 <- adply(bs_indices.sc1, .margins = 2, .parallel = TRUE, .fun = function(ind) {
+        tmp <- t(as.data.frame(sc1_metric(ens.df[ind, ], "spearman")))
+        rownames(tmp) <- NULL
+        tmp
+    }) 
+    ens.boot.sc1 <- ens.boot.sc1[, -1]
+    boot.sc1 <- cbind(boot.sc1, ens.boot.sc1$Ensemble)
+    colnames(boot.sc1)[ncol(boot.sc1)] <- "Ensemble"
+
 # remotes::install_github("Sage-Bionetworks/challengescoring")
 library(challengescoring)
 # remotes::install_github("Sage-Bionetworks/challengerutils")
@@ -212,6 +238,7 @@ print(colnames(boot.sc1))
     	      as.data.frame()
     print(bayes.sc1)
 
+
     scores <- melt(boot.sc1)
     colnames(scores) <- c("team", "spearman")
     scores$team <- as.character(scores$team)
@@ -219,12 +246,14 @@ print(colnames(boot.sc1))
     scores <- subset(scores, !(team %in% teams.to.drop))
     
     tmp <- sc1_metric(pred.mat.sc1[,-1], "pearson")
+    tmp["Ensemble"] <- as.numeric(ens.pearson["Ensemble"])
     mean.pearson.scores <- data.frame(team = names(tmp), pearson = as.numeric(tmp))
     ## mean.pearson.scores <- subset(mean.pearson.scores, team != "gold")
     mean.pearson.scores <- subset(mean.pearson.scores, !(team %in% teams.to.drop))
 }
 
 ## End generate dummy data
+
 
 ## BEGIN EDIT HERE
 ## Can remove code between "Begin generate dummy data" and "End generate dummy data"

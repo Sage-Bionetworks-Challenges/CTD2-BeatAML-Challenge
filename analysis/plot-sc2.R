@@ -43,26 +43,35 @@ sub.mat <- lapply(submissions2$prediction_fileid, function(sub) {
   as.data.frame()
 
 # Add several models based on yasin's approach
-model.dir <- "/Users/whitebr/work/sage/beataml-challenge/yasin/beatAMLdreamChallenge/output/"
+# model.dir <- "/Users/whitebr/work/sage/beataml-challenge/yasin/beatAMLdreamChallenge/output/"
+model.dir <- "../yasin/beatAMLdreamChallenge/output/"
 
-data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/"
+# Ensure data are downloaded by sourcing ../../analysis/download-challenge-data.R"
+# data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/training/"
+data.dir <- "../Data/"
+# data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/"
 validation.response.file <- paste0(data.dir, "/validation/response.csv")
 leaderboard.response.file <- paste0(data.dir, "/leaderboard/response.csv")
 training.response.file <- paste0(data.dir, "/training/response.csv")
 
 models <-
   list(
-       "Base: age + mean AUC" = "coxph-fit-age-grd",
        "Base: age" = "coxph-fit-age",
-       "ymemari + mean AUC" = "coxph-fit-mean-auc",
-       "Base: mean AUC" = "coxph-fit-mean-auc-only",       
-       "ymemari (uncor)" = "coxph-fit-uncor",
-       "ymemari (uncor + mean AUC)" = "coxph-fit-uncor-grd")
+       "ymemari (uncor)" = "coxph-fit-uncor")
 
 models <-
   list(
+       "Base: age + mean AUC" = "coxph-fit-age-grd",
        "Base: age" = "coxph-fit-age",
-       "ymemari (uncor)" = "coxph-fit-uncor")
+       "ymemari + mean AUC" = "coxph-fit-mean-auc",
+# ymemari-rerun is identical to the submitted ymemari results
+#       "ymemari-rerun" = "coxph-fit",
+       "ymemari - PC5" = "coxph-fit-no-PC5",
+       "Base: mean AUC" = "coxph-fit-mean-auc-only",       
+       "ymemari (uncor)" = "coxph-fit-uncor",
+       "ymemari (uncor) + PC5" = "coxph-fit-uncor-with-PC5",
+       "ymemari (uncor) + mean AUC" = "coxph-fit-uncor-grd")
+
 
 
 for(mdl in models) {
@@ -84,10 +93,15 @@ sc2.names <- sapply(submissions2$submitterId, function(sub) {
   })
   return(name)
 })
-sc2.names <- c(as.character(sc2.names), names(models))
 
 flag <- sc2.names == "vchung"
 sc2.names[flag] <- "Base: all data"
+
+participant.methods <- sc2.names[!flag]
+participant.methods <- as.vector(participant.methods)
+
+sc2.names <- c(as.character(sc2.names), names(models))
+
 
 colnames(sub.mat) <- sc2.names
 
@@ -102,9 +116,20 @@ validation_survival <- read.table(validation.response.file, sep=",", header=TRUE
 leaderboard_survival <- read.table(leaderboard.response.file, sep=",", header=TRUE)
 train_survival <- read.table(training.response.file, sep=",", header=TRUE)
 
+# preds is a matrix whose rows are samples and columns are predictions
+ensemble.pred <- function(preds) {
+  rnks <- apply(preds, 2, rank)
+  rowMeans(rnks)
+}
+
+
 my.auc <-
   unlist(lapply(1:ncol(sub.mat), function(i) scoreSC2_auc_with_r(train_survival, validation_survival, data.frame(survival = sub.mat[,i]))))
 names(my.auc) <- colnames(sub.mat)  
+
+ens.pred <- ensemble.pred(sub.mat[,participant.methods])
+ens.auc <- scoreSC2_auc_with_r(train_survival, validation_survival, data.frame(survival = ens.pred))
+my.auc["Ensemble"] <- ens.auc
 
 comp <- data.frame(lab_id = names(auc), auc = as.numeric(auc))
 comp <- merge(comp, data.frame(lab_id = names(my.auc), my.auc = as.numeric(my.auc)))
@@ -126,9 +151,21 @@ boot.sc2 <- apply(bs_indices.sc2, 2, function(ind) {
 }) %>%
   t()
 
+
 bayes.sc2 <- computeBayesFactor(boot.sc2, 1, T) %>%
   as.data.frame()
 bayes.sc2
+
+# Apply an ensemble method that is just the mean rank
+# NB: intentionally do this _after_ calculating bayes factor
+
+ens.boot.sc2 <- apply(bs_indices.sc2, 2, function(ind) {
+  tmp.gold <- gold.sc2[ind,]
+  ens.pred <- ensemble.pred(sub.mat[ind,participant.methods])
+  ci <- scoreSC2_with_r(ens.pred, tmp.gold)
+}) 
+boot.sc2 <- cbind(boot.sc2, ens.boot.sc2)
+colnames(boot.sc2)[ncol(boot.sc2)] <- "Ensemble"
 
 
 
@@ -142,12 +179,13 @@ df <- data.frame(team = colnames(boot.sc2), score = as.numeric(colMeans(boot.sc2
 o <- order(df$score, decreasing=FALSE)
 df <- df[o,]
 lvls <- df$team
+print(sort(lvls))
 
 scores <- melt(boot.sc2)
 colnames(scores) <- c("boot", "team", "ci")
 scores$team <- factor(scores$team, levels = lvls)
 scores$fill <- "#56B4E9"
-ties <- c(rownames(bayes.sc2)[1], rownames(bayes.sc2)[bayes.sc2[,1] < 3])
+ties <- c(rownames(bayes.sc2)[1], rownames(bayes.sc2)[bayes.sc2[,1] < 3], "Ensemble")
 scores[scores$team %in% ties,"fill"] <- "#9FE600"
 
 source("geom_boxplotMod.R")
@@ -169,6 +207,8 @@ auc.df <- data.frame(team = names(my.auc), auc = as.numeric(my.auc))
 auc.df <- merge(scores, auc.df, all.x = TRUE)
 auc.df$team <- factor(auc.df$team, levels = lvls)
 auc.df$fill <- "#E69F00"
+
+write.table(file="scores.tsv", auc.df, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ## Plot barplot
 g2 <- ggplot(data = auc.df)
