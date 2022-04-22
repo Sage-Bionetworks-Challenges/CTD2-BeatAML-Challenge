@@ -4,8 +4,6 @@ library(challengescoring)
 library(challengerutils)
 library(reshape2)
 library(pacman)
-library(survminer)
-library(plyr)
 
 # Synapse setup -- using reticulate because synasper has problems.
 # Follow directions for installed challengerutils here: https://github.com/Sage-Bionetworks/challengerutils
@@ -45,26 +43,35 @@ sub.mat <- lapply(submissions2$prediction_fileid, function(sub) {
   as.data.frame()
 
 # Add several models based on yasin's approach
-model.dir <- "/Users/whitebr/work/sage/beataml-challenge/yasin/beatAMLdreamChallenge/output/"
+# model.dir <- "/Users/whitebr/work/sage/beataml-challenge/yasin/beatAMLdreamChallenge/output/"
+model.dir <- "../yasin/beatAMLdreamChallenge/output/"
 
-data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/"
+# Ensure data are downloaded by sourcing ../../analysis/download-challenge-data.R"
+# data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/training/"
+data.dir <- "../Data/"
+# data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/"
 validation.response.file <- paste0(data.dir, "/validation/response.csv")
 leaderboard.response.file <- paste0(data.dir, "/leaderboard/response.csv")
 training.response.file <- paste0(data.dir, "/training/response.csv")
 
 models <-
   list(
-       "Baseline: age + mean AUC" = "coxph-fit-age-grd",
-       "Baseline: age" = "coxph-fit-age",
-       "ymemari + mean AUC" = "coxph-fit-mean-auc",
-       "Baseline: mean AUC" = "coxph-fit-mean-auc-only",       
-       "ymemari (uncor)" = "coxph-fit-uncor",
-       "ymemari (uncor + mean AUC)" = "coxph-fit-uncor-grd")
+       "Base: age" = "coxph-fit-age",
+       "ymemari (uncor)" = "coxph-fit-uncor")
 
 models <-
   list(
-       "Baseline: age" = "coxph-fit-age",
-       "ymemari (uncor)" = "coxph-fit-uncor")
+       "Base: age + mean AUC" = "coxph-fit-age-grd",
+       "Base: age" = "coxph-fit-age",
+       "ymemari + mean AUC" = "coxph-fit-mean-auc",
+# ymemari-rerun is identical to the submitted ymemari results
+#       "ymemari-rerun" = "coxph-fit",
+       "ymemari - PC5" = "coxph-fit-no-PC5",
+       "Base: mean AUC" = "coxph-fit-mean-auc-only",       
+       "ymemari (uncor)" = "coxph-fit-uncor",
+       "ymemari (uncor) + PC5" = "coxph-fit-uncor-with-PC5",
+       "ymemari (uncor) + mean AUC" = "coxph-fit-uncor-grd")
+
 
 
 for(mdl in models) {
@@ -86,10 +93,15 @@ sc2.names <- sapply(submissions2$submitterId, function(sub) {
   })
   return(name)
 })
-sc2.names <- c(as.character(sc2.names), names(models))
 
 flag <- sc2.names == "vchung"
-sc2.names[flag] <- "Baseline: all data"
+sc2.names[flag] <- "Base: all data"
+
+participant.methods <- sc2.names[!flag]
+participant.methods <- as.vector(participant.methods)
+
+sc2.names <- c(as.character(sc2.names), names(models))
+
 
 colnames(sub.mat) <- sc2.names
 
@@ -104,9 +116,20 @@ validation_survival <- read.table(validation.response.file, sep=",", header=TRUE
 leaderboard_survival <- read.table(leaderboard.response.file, sep=",", header=TRUE)
 train_survival <- read.table(training.response.file, sep=",", header=TRUE)
 
+# preds is a matrix whose rows are samples and columns are predictions
+ensemble.pred <- function(preds) {
+  rnks <- apply(preds, 2, rank)
+  rowMeans(rnks)
+}
+
+
 my.auc <-
   unlist(lapply(1:ncol(sub.mat), function(i) scoreSC2_auc_with_r(train_survival, validation_survival, data.frame(survival = sub.mat[,i]))))
 names(my.auc) <- colnames(sub.mat)  
+
+ens.pred <- ensemble.pred(sub.mat[,participant.methods])
+ens.auc <- scoreSC2_auc_with_r(train_survival, validation_survival, data.frame(survival = ens.pred))
+my.auc["Ensemble"] <- ens.auc
 
 comp <- data.frame(lab_id = names(auc), auc = as.numeric(auc))
 comp <- merge(comp, data.frame(lab_id = names(my.auc), my.auc = as.numeric(my.auc)))
@@ -128,15 +151,27 @@ boot.sc2 <- apply(bs_indices.sc2, 2, function(ind) {
 }) %>%
   t()
 
+
 bayes.sc2 <- computeBayesFactor(boot.sc2, 1, T) %>%
   as.data.frame()
 bayes.sc2
+
+# Apply an ensemble method that is just the mean rank
+# NB: intentionally do this _after_ calculating bayes factor
+
+ens.boot.sc2 <- apply(bs_indices.sc2, 2, function(ind) {
+  tmp.gold <- gold.sc2[ind,]
+  ens.pred <- ensemble.pred(sub.mat[ind,participant.methods])
+  ci <- scoreSC2_with_r(ens.pred, tmp.gold)
+}) 
+boot.sc2 <- cbind(boot.sc2, ens.boot.sc2)
+colnames(boot.sc2)[ncol(boot.sc2)] <- "Ensemble"
 
 
 
 ## vchung is in here as the baseline
 flag <- colnames(boot.sc2) == "vchung"
-colnames(boot.sc2)[flag] <- "Baseline: all data"
+colnames(boot.sc2)[flag] <- "Base: all data"
 
 # lvls <- rev(colnames(boot.sc2))
 
@@ -144,12 +179,13 @@ df <- data.frame(team = colnames(boot.sc2), score = as.numeric(colMeans(boot.sc2
 o <- order(df$score, decreasing=FALSE)
 df <- df[o,]
 lvls <- df$team
+print(sort(lvls))
 
 scores <- melt(boot.sc2)
 colnames(scores) <- c("boot", "team", "ci")
 scores$team <- factor(scores$team, levels = lvls)
 scores$fill <- "#56B4E9"
-ties <- c(rownames(bayes.sc2)[1], rownames(bayes.sc2)[bayes.sc2[,1] < 3])
+ties <- c(rownames(bayes.sc2)[1], rownames(bayes.sc2)[bayes.sc2[,1] < 3], "Ensemble")
 scores[scores$team %in% ties,"fill"] <- "#9FE600"
 
 source("geom_boxplotMod.R")
@@ -161,9 +197,7 @@ g1 <- g1 + geom_boxplotMod()
 g1 <- g1 + coord_flip()
 g1 <- g1 + xlab("Method")
 g1 <- g1 + ylab("Concordance Index")
-sz <- 20
-sz <- 18
-g1 <- g1 + theme(text = element_text(size=18), title = element_text(size = sz),
+g1 <- g1 + theme(text = element_text(size=18), title = element_text(size = 20),
                  axis.text.x = element_text(angle = 45, hjust = 1),
 		 axis.title.y = element_blank(),
 		 legend.position = "none")
@@ -173,6 +207,8 @@ auc.df <- data.frame(team = names(my.auc), auc = as.numeric(my.auc))
 auc.df <- merge(scores, auc.df, all.x = TRUE)
 auc.df$team <- factor(auc.df$team, levels = lvls)
 auc.df$fill <- "#E69F00"
+
+write.table(file="scores.tsv", auc.df, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ## Plot barplot
 g2 <- ggplot(data = auc.df)
@@ -188,49 +224,8 @@ g2 <- g2 + theme(axis.text.y = element_blank(), axis.title.y = element_blank(),
 
 suppressPackageStartupMessages(p_load(cowplot)) ## for plot_grid
 
-g.sc2.scores <- plot_grid(g1, g2, nrow=1, align="h", rel_widths = c(3,0.6))
+pg <- plot_grid(g1, g2, nrow=1, align="h", rel_widths = c(3,0.6))
 
 png("sc2-scores.png", width = 2 * 480)
-print(g.sc2.scores)
+print(pg)
 d <- dev.off()
-
-# Load in several SC2 models:
-# (1) Yasin's original model -- trained on the trainining data or the validation data
-# (2) A modified model that excludes AgeAtSpecimenAcquisition and also tries to select
-#     uncorrelated features using stepwise regression -- trained on the training data
-#     or the validation data
-
-training.model.dir <- "../yasin/beatAMLdreamChallenge/"
-validation.model.dir <- "../yasin/beatAMLdreamChallenge/output/"
-data.dir <- "../yasin/beatAMLdreamChallenge/output/"
-model.files <- list(
-  "coxph-fit-train" = paste0(training.model.dir, "coxph-fit.rds"),
-  "coxph-fit-uncor-train" = paste0(training.model.dir, "coxph-fit-uncor.rds"),
-  "coxph-fit-val" = paste0(validation.model.dir, "coxph-fit-validation.rds"),
-  "coxph-fit-uncor-val" = paste0(validation.model.dir, "coxph-fit-uncor-validation.rds")
-  )
-
-model.fits <- llply(model.files, .fun = function(model.fit) readRDS(model.fit))
-
-training.data <- read.table(paste0(data.dir, "training-data-formatted-for-yasin.csv"), sep=",", header=TRUE, as.is=TRUE)
-val.data <- read.table(paste0(data.dir, "validation-data-formatted-for-yasin.csv"), sep=",", header=TRUE, as.is=TRUE)
-
-font.size <- 0.65
-cpos=c(0.02, 0.28, 0.40)
-g.yasin.train <- ggforest(model.fits[["coxph-fit-train"]], data=training.data, main = "ymemari (training) hazard ratio", fontsize = font.size, cpositions = cpos)
-g.yasin.val <- ggforest(model.fits[["coxph-fit-val"]], data=val.data, main = "ymemari (validation) hazard ratio", fontsize = font.size, cpositions = cpos)
-g.modified.train <- ggforest(model.fits[["coxph-fit-uncor-train"]], data=training.data, main = "ymemari (uncor; training) hazard ratio", fontsize = font.size, cpositions = cpos)
-g.modified.val <- ggforest(model.fits[["coxph-fit-uncor-val"]], data=val.data, main = "ymemari (uncor; validation) hazard ratio", fontsize = font.size, cpositions = cpos)
-
-g.all <- plot_grid(g.yasin.train, g.yasin.val, g.modified.train, g.modified.val, nrow = 2, labels = "AUTO")
-
-ggsave(plot = g.all, "sc2-forest-all.png", width = 14, height = 14)
-ggsave(plot = g.all, "sc2-forest-all.pdf", width = 14, height = 14)
-
-font.size <- 1
-cpos=c(0.02, 0.28, 0.40)
-g.modified.val.big <- ggforest(model.fits[["coxph-fit-uncor-val"]], data=val.data, main = "ymemari (uncor; validation) hazard ratio", fontsize = font.size, cpositions = cpos)
-
-g.scores.and.forest <- plot_grid(g.sc2.scores, g.modified.val.big, nrow = 2, labels = "AUTO")
-ggsave(plot = g.scores.and.forest, "sc2-scores-and-forest.png", width = 14)
-ggsave(plot = g.scores.and.forest, "sc2-scores-and-forest.pdf", width = 14)
