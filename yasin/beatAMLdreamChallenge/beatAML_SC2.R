@@ -50,6 +50,8 @@ response_data <- response %>%
                select(1:min(5,dim(rnaseq_pcDat[["x"]])[2])) %>% 
                mutate(lab_id=rownames(rnaseq_pcDat[["x"]])), by = "lab_id")
 
+write.table(response_data, file = "output/training-data-formatted-for-yasin.csv", sep=",", row.names = FALSE, col.names = TRUE, quote = FALSE)
+
 rownames(response_data)=response_data$lab_id
 response_data <- response_data %>% select(-c("lab_id"))
 #coxph(Surv(overallSurvival, vitalStatus) ~ . , data = response_data)  
@@ -81,6 +83,7 @@ as.data.frame(res)
 multiv_formula <- as.formula(paste('Surv(overallSurvival, vitalStatus) ~', 
                                    paste(rownames(res[which(as.numeric(res[,4])<0.05),]),collapse=" + ")))
 coxph.fit <- coxph(multiv_formula, data = response_data)
+
 survConcordance(Surv(overallSurvival, vitalStatus) ~ predict(coxph.fit, response_data), response_data)
 
 saveRDS(coxph.fit, file="coxph-fit.rds")
