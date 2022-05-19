@@ -1,0 +1,2 @@
+1. Create a script that trains a model, using yasin/beatAMLdreamChallenge/beatAML_SC2-no-PC5.R as a template.
+
