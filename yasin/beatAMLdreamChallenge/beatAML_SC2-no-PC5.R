@@ -1,15 +1,16 @@
-library(readr)
-library(dplyr)
-library(reshape2)
-library(S4Vectors)
-library(tibble)
-library(limma)
-library(survival)
-library(survminer)
+suppressPackageStartupMessages(library(pacman))
+suppressPackageStartupMessages(p_load(readr))
+suppressPackageStartupMessages(p_load(dplyr))
+suppressPackageStartupMessages(p_load(reshape2))
+suppressPackageStartupMessages(p_load(S4Vectors))
+suppressPackageStartupMessages(p_load(tibble))
+suppressPackageStartupMessages(p_load(limma))
+suppressPackageStartupMessages(p_load(survival))
+suppressPackageStartupMessages(p_load(survminer))
 
-# Yasin's original model
-
-data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/training/"
+# Ensure data are downloaded by sourcing ../../analysis/download-challenge-data.R"
+# data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/training/"
+data.dir <- "../../Data/training/"
 
 dnaseq <- read_csv(paste0(data.dir, "dnaseq.csv"))
 rnaseq <- read_csv(paste0(data.dir, "rnaseq.csv"))
@@ -52,8 +53,6 @@ response_data <- response %>%
                select(1:min(5,dim(rnaseq_pcDat[["x"]])[2])) %>% 
                mutate(lab_id=rownames(rnaseq_pcDat[["x"]])), by = "lab_id")
 
-write.table(response_data, file = "output/training-data-formatted-for-yasin.csv", sep=",", row.names = FALSE, col.names = TRUE, quote = FALSE)
-
 rownames(response_data)=response_data$lab_id
 response_data <- response_data %>% select(-c("lab_id"))
 #coxph(Surv(overallSurvival, vitalStatus) ~ . , data = response_data)  
@@ -82,13 +81,16 @@ univ_results <- lapply(univ_models,
 res <- t(as.data.frame(univ_results, check.names = FALSE))
 as.data.frame(res)
 
-multiv_formula <- as.formula(paste('Surv(overallSurvival, vitalStatus) ~', 
-                                   paste(rownames(res[which(as.numeric(res[,4])<0.05),]),collapse=" + ")))
-coxph.fit <- coxph(multiv_formula, data = response_data)
+covars <- rownames(res[which(as.numeric(res[,4])<0.05),])
+# Exclude PC5 (to test it's impact)
+covars <- covars[covars != "PC5"]
+multiv_formula <- as.formula(paste('Surv(overallSurvival, vitalStatus) ~', paste(covars, collapse=" + ")))
 
+print(multiv_formula)
+coxph.fit <- coxph(multiv_formula, data = response_data)
 survConcordance(Surv(overallSurvival, vitalStatus) ~ predict(coxph.fit, response_data), response_data)
 
-saveRDS(coxph.fit, file="coxph-fit.rds")
+saveRDS(coxph.fit, file="coxph-fit-no-PC5.rds")
 
 ggforest(coxph.fit, data=response_data, fontsize = 1.05)
-ggsave("sc2-forest.png", width = 14)
+ggsave("sc2-forest-no-PC5.png", width = 14)

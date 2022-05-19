@@ -1,15 +1,22 @@
-library(readr)
-library(dplyr)
-library(reshape2)
-library(S4Vectors)
-library(tibble)
-library(limma)
-library(survival)
-library(survminer)
+suppressPackageStartupMessages(library(pacman))
+suppressPackageStartupMessages(p_load(readr))
+suppressPackageStartupMessages(p_load(dplyr))
+suppressPackageStartupMessages(p_load(reshape2))
+suppressPackageStartupMessages(p_load(S4Vectors))
+suppressPackageStartupMessages(p_load(tibble))
+suppressPackageStartupMessages(p_load(limma))
+suppressPackageStartupMessages(p_load(survival))
+suppressPackageStartupMessages(p_load(survminer))
 
-# Yasin's original model
+# Ensure data are downloaded by sourcing ../../analysis/download-challenge-data.R"
+# data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/training/"
+data.dir <- "../../Data/training/"
 
-data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/training/"
+# This model is a variant of Yasin's that removes covariates that are correlated with one another.
+# In particular:
+# (1) It removes ageAtSpecimenAcquisition if both it and ageAtDiagnosis are included
+# (2) It uses stepwise regression to remove other correlated variables
+# ... but / and that adds back PC5 that was removed by the stepwise regression
 
 dnaseq <- read_csv(paste0(data.dir, "dnaseq.csv"))
 rnaseq <- read_csv(paste0(data.dir, "rnaseq.csv"))
@@ -52,8 +59,6 @@ response_data <- response %>%
                select(1:min(5,dim(rnaseq_pcDat[["x"]])[2])) %>% 
                mutate(lab_id=rownames(rnaseq_pcDat[["x"]])), by = "lab_id")
 
-write.table(response_data, file = "output/training-data-formatted-for-yasin.csv", sep=",", row.names = FALSE, col.names = TRUE, quote = FALSE)
-
 rownames(response_data)=response_data$lab_id
 response_data <- response_data %>% select(-c("lab_id"))
 #coxph(Surv(overallSurvival, vitalStatus) ~ . , data = response_data)  
@@ -82,13 +87,40 @@ univ_results <- lapply(univ_models,
 res <- t(as.data.frame(univ_results, check.names = FALSE))
 as.data.frame(res)
 
-multiv_formula <- as.formula(paste('Surv(overallSurvival, vitalStatus) ~', 
-                                   paste(rownames(res[which(as.numeric(res[,4])<0.05),]),collapse=" + ")))
-coxph.fit <- coxph(multiv_formula, data = response_data)
+cols <- rownames(res[which(as.numeric(res[,4])<0.05),])
+if(TRUE) {
+if(("ageAtDiagnosis" %in% cols) && ("ageAtSpecimenAcquisition" %in% cols)) {
+  cols <- cols[(cols != "ageAtSpecimenAcquisition")]
+}
+}
 
+multiv_formula <- as.formula(paste('Surv(overallSurvival, vitalStatus) ~', paste(cols,collapse=" + ")))
+                                   
+coxph.fit <- coxph(multiv_formula, data = response_data)
 survConcordance(Surv(overallSurvival, vitalStatus) ~ predict(coxph.fit, response_data), response_data)
 
-saveRDS(coxph.fit, file="coxph-fit.rds")
+## Use stepwise regression to remove correlation
+coxph.fit <- step(coxph.fit, direction="backward")
+
+# Add back PC5
+cols <- names(coefficients(coxph.fit))
+cols <- unique(c("PC5", cols))
+
+multiv_formula <- as.formula(paste('Surv(overallSurvival, vitalStatus) ~', paste(cols,collapse=" + ")))
+print(multiv_formula)
+                                   
+coxph.fit <- coxph(multiv_formula, data = response_data)
+
+saveRDS(coxph.fit, file="coxph-fit-uncor-with-PC5.rds")
 
 ggforest(coxph.fit, data=response_data, fontsize = 1.05)
-ggsave("sc2-forest.png", width = 14)
+ggsave("sc2-forest-uncor-with-PC5.png", width = 14)
+
+df <- as.data.frame(response_data)
+for(i in 1:4) {
+for(j in (i+1):5) {
+coli <- cols[i]
+colj <- cols[j]
+cat(paste0(coli, " vs ", colj, "\n"))
+print(table(df[,coli], df[,colj]))
+}}

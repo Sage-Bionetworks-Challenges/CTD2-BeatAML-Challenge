@@ -1,13 +1,21 @@
-library(readr)
-library(dplyr)
-library(reshape2)
-library(S4Vectors)
-library(tibble)
-library(limma)
-library(survival)
-library(survminer)
+suppressPackageStartupMessages(library(pacman))
+suppressPackageStartupMessages(p_load(readr))
+suppressPackageStartupMessages(p_load(dplyr))
+suppressPackageStartupMessages(p_load(reshape2))
+suppressPackageStartupMessages(p_load(S4Vectors))
+suppressPackageStartupMessages(p_load(tibble))
+suppressPackageStartupMessages(p_load(limma))
+suppressPackageStartupMessages(p_load(survival))
+suppressPackageStartupMessages(p_load(survminer))
 
-data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/training/"
+# Ensure data are downloaded by sourcing ../../analysis/download-challenge-data.R"
+# data.dir <- "/Users/whitebr/work/sage/beataml-challenge/Data/training/"
+data.dir <- "../../Data/training/"
+
+# This model is a variant of Yasin's that removes covariates that are correlated with one another.
+# In particular:
+# (1) It removes ageAtSpecimenAcquisition if both it and ageAtDiagnosis are included
+# (2) It uses stepwise regression to remove other correlated variables
 
 dnaseq <- read_csv(paste0(data.dir, "dnaseq.csv"))
 rnaseq <- read_csv(paste0(data.dir, "rnaseq.csv"))

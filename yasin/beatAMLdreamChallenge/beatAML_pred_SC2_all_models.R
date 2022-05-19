@@ -15,11 +15,13 @@ rds_dir = "./"
 
 models <- c(
   "coxph-fit",
+  "coxph-fit-no-PC5",
   "coxph-fit-age-grd",
   "coxph-fit-age",
   "coxph-fit-mean-auc",
   "coxph-fit-mean-auc-only",  
   "coxph-fit-uncor",
+  "coxph-fit-uncor-with-PC5",
   "coxph-fit-uncor-grd")
 
 dnaseq_t <- read_csv(paste0(input_dir,"dnaseq.csv"))

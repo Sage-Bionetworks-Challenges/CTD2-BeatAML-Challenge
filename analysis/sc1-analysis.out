@@ -261,6 +261,28 @@ alternative hypothesis: true location shift is greater than 0
 
 Num unique kinase inhibitors: 60
 Len of kinase inhibitor table: 60
+Multivarate test of mean correlation association
+
+Call:
+lm(formula = formula("mean.correlation ~ 0 + Number.of.targets + training.range + validation.range + training.grd.cor + validation.grd.cor"), 
+    data = ki.tbl)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.35267 -0.06696 -0.00131  0.08175  0.28804 
+
+Coefficients:
+                     Estimate Std. Error t value Pr(>|t|)
+Number.of.targets   0.0009388  0.0008672   1.083    0.284
+training.range      0.0022172  0.0024696   0.898    0.373
+validation.range    0.0030665  0.0019654   1.560    0.124
+training.grd.cor    0.1383803  0.2338703   0.592    0.556
+validation.grd.cor -0.0622377  0.1773198  -0.351    0.727
+
+Residual standard error: 0.1287 on 55 degrees of freedom
+Multiple R-squared:  0.8637,	Adjusted R-squared:  0.8513 
+F-statistic: 69.68 on 5 and 55 DF,  p-value: < 2.2e-16
+
 `geom_smooth()` using formula 'y ~ x'
 `geom_smooth()` using formula 'y ~ x'
 method = pearson estimate = 0.434503057461442 pval = 0.329976037710864

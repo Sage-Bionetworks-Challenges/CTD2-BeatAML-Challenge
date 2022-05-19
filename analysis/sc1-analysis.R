@@ -431,6 +431,9 @@ all.drugs <- intersect(all.drugs, prediction.drugs)
 mean.drug.predictions <- drug.mean.validation.result.tbl$spearman
 names(mean.drug.predictions) <- rownames(drug.mean.validation.result.tbl)
 
+median.drug.predictions <- summarized.validation.result.tbl$spearman
+names(median.drug.predictions) <- rownames(summarized.validation.result.tbl)
+
 all.drugs <- unique(c(all.drugs, "GRD"))
 all.drugs <- all.drugs[!(all.drugs %in% drugs.to.exclude)]
 
@@ -572,6 +575,7 @@ write.table(file="drug-clusters.tsv", drug.clusters, quote = FALSE, sep = "\t", 
 drug.range.tbl <- data.frame(inhibitor = names(training.auc.ranges), training.range = unname(training.auc.ranges))
 drug.range.tbl <- merge(drug.range.tbl, data.frame(inhibitor = names(validation.auc.ranges), validation.range = unname(validation.auc.ranges)))
 mean.perf.tbl <- data.frame(inhibitor = names(mean.drug.predictions), mean.correlation = unname(mean.drug.predictions))
+median.perf.tbl <- data.frame(inhibitor = names(median.drug.predictions), median.correlation = unname(median.drug.predictions))
 
 multi.vs.uni.df <- data.frame(inhibitor = names(multi_vs_uni_variate), multi.vs.uni = as.vector(multi_vs_uni_variate))
 
@@ -780,6 +784,10 @@ pdf(paste0(plot.dir, "/perf-targets-range-grd.pdf"))
 print(g)
 d <- dev.off()
 
+
+cat(paste0("Multivarate test of mean correlation association\n"))
+lmf <- lm(formula("mean.correlation ~ 0 + Number.of.targets + training.range + validation.range + training.grd.cor + validation.grd.cor"), data = ki.tbl)
+print(summary(lmf))
 
 png(paste0(plot.dir, "/sc1-individ-drug-perf-and-correlates.png"), width = 2 * 480)
 plot_grid(g.drug, ggmatrix_gtable(g), labels="AUTO")
