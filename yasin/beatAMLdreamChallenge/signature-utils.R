@@ -64,3 +64,24 @@ adjust.scores.to.reflect.multimappers <- function(signature, expr.df, gene.col) 
   names(adj.signature) <- signature.df$gene
   return(adj.signature)
 }
+
+# See https://www.nature.com/articles/nature20598 for application to RNA-seq
+# in section Signature testing: RNA-seq data processing and analysis
+# In particular, expr should be log2(1+RPKM)
+compute.lsc17.score <- function(rnaseq_cnts, signature, signature.name, gene.col, sample.cols) {
+  if(any(rnaseq_cnts < 0)) { stop("Was expecting expression matrix to be counts\n") }
+
+  # Convert counts to log2(1+RPKM) (or, actually, log2(1+CPM))
+  library(edgeR)
+  rnaseq <- as.data.frame(cpm(rnaseq_cnts[, sample.cols], prior.count = 1, lib.size = NULL, log = TRUE))
+  colnames(rnaseq) <- sample.cols
+  rnaseq[, gene.col] <- rnaseq_cnts[, gene.col]
+
+  adj.signature <- 
+    adjust.scores.to.reflect.multimappers(signature, as.data.frame(rnaseq), gene.col) 
+  score <- calculate.score(adj.signature, as.data.frame(rnaseq), gene.col, sample.cols) 
+  score.df <- data.frame(signature = as.vector(score), lab_id = names(score))
+  colnames(score.df)[1] <- signature.name
+  return(score.df)
+}
+
