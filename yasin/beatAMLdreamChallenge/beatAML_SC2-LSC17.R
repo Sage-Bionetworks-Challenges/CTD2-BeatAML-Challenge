@@ -15,6 +15,7 @@ data.dir <- "../../Data/training/"
 source("signature-utils.R")
 
 signature.file <- "lsc17-genelist.tsv"
+signature.name <- "LSC17"
 
 sig <- read.table(signature.file, sep="\t", header=TRUE)
 
@@ -32,8 +33,6 @@ clinical_categorical_legend <- read_csv(paste0(data.dir, "clinical_categorical_l
 colnames(clinical_categorical) <- make.names(colnames(clinical_categorical))
 response <- read_csv(paste0(data.dir, "response.csv"))
 
-# adj.signature <- adjust.scores.to.reflect.multimappers(signature, expr.df, gene.col) 
-# score <- calculate.score(adj.signature, expr.df, gene.col, sample.cols) 
 
 # drop columns with missing values 
 clinical_numerical <- clinical_numerical %>% select(-c("%.Blasts.in.PB","WBC.Count"))
@@ -43,6 +42,15 @@ rna_log2counts <- as.matrix(rnaseq[,3:dim(rnaseq)[2]])
 rownames(rna_log2counts) <- rnaseq$Gene
 rna_counts <- round(2^rna_log2counts)
 rownames(rna_counts) <- rownames(rna_log2counts)
+
+sample.cols <- colnames(rna_log2counts)
+gene.col <- "Symbol"
+
+adj.signature <- 
+  adjust.scores.to.reflect.multimappers(signature, as.data.frame(rnaseq), gene.col) 
+score <- calculate.score(adj.signature, as.data.frame(rnaseq), gene.col, sample.cols) 
+score.df <- data.frame(signature = as.vector(score), lab_id = names(score))
+colnames(score.df)[1] <- signature.name
 
 countdata <- as.data.frame(rna_counts)
 rnaseq_voom = voom(countdata)$E
@@ -61,6 +69,7 @@ plot(kmsurvival,xlab="time",ylab="Survival probability")
 response_data <- response %>% 
   inner_join(clinical_categorical, by = "lab_id") %>% 
   inner_join(clinical_numerical, by = "lab_id") %>% 
+  inner_join(score.df, by = "lab_id") %>% 
   inner_join(aucs %>% group_by(lab_id) %>% 
                summarise(mean_auc = mean(auc)), by = "lab_id") %>% 
   inner_join(as.data.frame(rnaseq_pcDat[["x"]]) %>% 
@@ -69,42 +78,15 @@ response_data <- response %>%
 
 rownames(response_data)=response_data$lab_id
 response_data <- response_data %>% select(-c("lab_id"))
-#coxph(Surv(overallSurvival, vitalStatus) ~ . , data = response_data)  
-covariates <- names(response_data)[-c(1,2)]
-#below copied from r-bloggers
-univ_formulas <- sapply(covariates, function(x) 
-  as.formula(paste('Surv(overallSurvival, vitalStatus) ~', x)))
-univ_models <- lapply( univ_formulas, function(x){coxph(x, data = response_data)})
-univ_results <- lapply(univ_models,
-                       function(x){ 
-                         x <- summary(x)
-                         p.value<-signif(x$wald["pvalue"], digits=2)
-                         wald.test<-signif(x$wald["test"], digits=2)
-                         beta<-signif(x$coef[1], digits=2);#coeficient beta
-                         HR <-signif(x$coef[2], digits=2);#exp(beta)
-                         HR.confint.lower <- signif(x$conf.int[,"lower .95"], 2)
-                         HR.confint.upper <- signif(x$conf.int[,"upper .95"],2)
-                         HR <- paste0(HR, " (", 
-                                      HR.confint.lower, "-", HR.confint.upper, ")")
-                         res<-c(beta, HR, wald.test, p.value)
-                         names(res)<-c("beta", "HR (95% CI for HR)", "wald.test", 
-                                       "p.value")
-                         return(res)
-                         #return(exp(cbind(coef(x),confint(x))))
-                       })
-res <- t(as.data.frame(univ_results, check.names = FALSE))
-as.data.frame(res)
 
-covars <- rownames(res[which(as.numeric(res[,4])<0.05),])
-# Exclude PC5 (to test it's impact)
-covars <- covars[covars != "PC5"]
+covars <- signature.name
 multiv_formula <- as.formula(paste('Surv(overallSurvival, vitalStatus) ~', paste(covars, collapse=" + ")))
 
 print(multiv_formula)
 coxph.fit <- coxph(multiv_formula, data = response_data)
 survConcordance(Surv(overallSurvival, vitalStatus) ~ predict(coxph.fit, response_data), response_data)
 
-saveRDS(coxph.fit, file="coxph-fit-no-PC5.rds")
+saveRDS(coxph.fit, file=paste0("coxph-fit-sig-", signature.name, ".rds"))
 
 ggforest(coxph.fit, data=response_data, fontsize = 1.05)
-ggsave("sc2-forest-no-PC5.png", width = 14)
+ggsave(paste0("sc2-forest-sig-", signature.name, ".png"), width = 14)
