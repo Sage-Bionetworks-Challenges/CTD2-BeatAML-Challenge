@@ -96,6 +96,10 @@ colnames(aucs.z) <- c("inhibitor", "lab_id", "auc")
 mean.aucs <- ddply(aucs.z, .variables = c("lab_id"), .fun = function(df) data.frame(mean_auc = mean(df$auc, na.rm=TRUE)))
 ## mean.aucs <- ddply(aucs, .variables = c("lab_id"), .fun = function(df) data.frame(mean_auc = mean(df$auc, na.rm=TRUE)))
 
+tmp <- as.data.frame(t(rna_log2counts_t)) %>% mutate(lab_id = rownames(t(rna_log2counts_t)))
+response_data_t <- response_data_t %>% inner_join(tmp, by = "lab_id")
+
+
 response_data_t <- merge(response_data_t, mean.aucs)
 
 

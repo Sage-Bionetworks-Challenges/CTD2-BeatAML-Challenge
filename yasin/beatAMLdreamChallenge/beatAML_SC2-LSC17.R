@@ -64,6 +64,8 @@ response$vitalStatus <- as.numeric(response$vitalStatus)
 kmsurvival <- survfit(Surv(overallSurvival, vitalStatus) ~ 1, data=response)
 plot(kmsurvival,xlab="time",ylab="Survival probability")
 
+
+
 response_data <- response %>% 
   inner_join(clinical_categorical, by = "lab_id") %>% 
   inner_join(clinical_numerical, by = "lab_id") %>% 
@@ -74,10 +76,19 @@ response_data <- response %>%
                select(1:min(5,dim(rnaseq_pcDat[["x"]])[2])) %>% 
                mutate(lab_id=rownames(rnaseq_pcDat[["x"]])), by = "lab_id")
 
+covars <- signature.name
+recompute.lsc17.coefs <- TRUE
+if(recompute.lsc17.coefs) {
+  covars <- as.data.frame(rnaseq)[rnaseq$Symbol %in% names(signature), "Gene"]
+  tmp <- as.data.frame(t(rna_log2counts)) %>% mutate(lab_id = rownames(t(rna_log2counts)))
+  tmp <- tmp[, c("lab_id", covars)]
+  response_data <- response_data %>% inner_join(tmp, by = "lab_id")
+}
+
 rownames(response_data)=response_data$lab_id
 response_data <- response_data %>% select(-c("lab_id"))
 
-covars <- signature.name
+
 multiv_formula <- as.formula(paste('Surv(overallSurvival, vitalStatus) ~', paste(covars, collapse=" + ")))
 
 print(multiv_formula)
