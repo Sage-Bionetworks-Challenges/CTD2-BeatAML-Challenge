@@ -1,2 +1,14 @@
 1. Create a script that trains a model, using yasin/beatAMLdreamChallenge/beatAML_SC2-no-PC5.R as a template.
+This stores the trained model in an rds file.
+
+2. Add the model to the script yasin/beatAMLdreamChallenge/beatAML_pred_SC2_all_models.R (to the models variable) and also calculate any
+dependent variables (e.g., a signature) from the validation data.
+
+3. Run the script beatAML_pred_SC2_all_models.R, which will run all models <model.name> listed
+in the models variable and will output the responses of the model as applied to the validation data
+<model.name>_predictions_response.csv
+
+4. Add the model to analysis/plot-sc2.R (to the models variable)
+
+5. Run analysis/plot-sc2.R
 

@@ -15,6 +15,7 @@ rds_dir = "./"
 
 models <- c(
   "coxph-fit",
+  "coxph-fit-sig-LSC17",
   "coxph-fit-no-PC5",
   "coxph-fit-age-grd",
   "coxph-fit-age",
@@ -23,6 +24,18 @@ models <- c(
   "coxph-fit-uncor",
   "coxph-fit-uncor-with-PC5",
   "coxph-fit-uncor-grd")
+
+source("signature-utils.R")
+
+lsc17.signature.file <- "lsc17-genelist.tsv"
+lsc17.signature.name <- "LSC17"
+
+lsc17.sig <- read.table(lsc17.signature.file, sep="\t", header=TRUE)
+
+# We assume that the signature file has columns coef (coefficient) and id (gene symbol)
+lsc17.signature <- lsc17.sig$coef
+names(lsc17.signature) <- lsc17.sig$id
+
 
 dnaseq_t <- read_csv(paste0(input_dir,"dnaseq.csv"))
 rnaseq_t <- read_csv(paste0(input_dir,"rnaseq.csv"))
@@ -46,6 +59,13 @@ rownames(rna_log2counts_t) <- rnaseq_t$Gene
 rna_counts_t <- round(2^rna_log2counts_t)
 rownames(rna_counts_t) <- rownames(rna_log2counts_t)
 
+sample.cols <- colnames(rna_log2counts_t)
+gene.col <- "Symbol"
+
+expr.df <- as.data.frame(rna_counts_t)
+expr.df[, gene.col] <- rnaseq_t[, gene.col]
+lsc17.score.df <- compute.lsc17.score(expr.df, lsc17.signature, lsc17.signature.name, gene.col, sample.cols)
+
 # rnaseq cpm sum of total check
 print(colSums(2^rna_log2counts_t))
 
@@ -66,6 +86,7 @@ rnaseq_pcDat_t <- prcomp(t(sigDE_log2counts_t))
 response_data_t <- response %>%
   inner_join(clinical_categorical_t, by = "lab_id") %>% 
   inner_join(clinical_numerical_t, by = "lab_id") %>% 
+  inner_join(lsc17.score.df, by = "lab_id") %>% 
   inner_join(as.data.frame(rnaseq_pcDat_t[["x"]]) %>% 
                select(1:min(5,dim(rnaseq_pcDat_t[["x"]])[2])) %>% 
                mutate(lab_id=rownames(rnaseq_pcDat_t[["x"]])), by = "lab_id")

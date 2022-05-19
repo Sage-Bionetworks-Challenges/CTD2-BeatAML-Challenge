@@ -46,11 +46,9 @@ rownames(rna_counts) <- rownames(rna_log2counts)
 sample.cols <- colnames(rna_log2counts)
 gene.col <- "Symbol"
 
-adj.signature <- 
-  adjust.scores.to.reflect.multimappers(signature, as.data.frame(rnaseq), gene.col) 
-score <- calculate.score(adj.signature, as.data.frame(rnaseq), gene.col, sample.cols) 
-score.df <- data.frame(signature = as.vector(score), lab_id = names(score))
-colnames(score.df)[1] <- signature.name
+expr.df <- as.data.frame(rna_counts)
+expr.df[, gene.col] <- rnaseq[, gene.col]
+score.df <- compute.lsc17.score(expr.df, signature, signature.name, gene.col, sample.cols)
 
 countdata <- as.data.frame(rna_counts)
 rnaseq_voom = voom(countdata)$E

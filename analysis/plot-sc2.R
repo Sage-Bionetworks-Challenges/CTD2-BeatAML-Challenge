@@ -1,9 +1,10 @@
-library(tidyverse)
+# library(tidyverse)
 library(reticulate)
 library(challengescoring)
 library(challengerutils)
 library(reshape2)
 library(pacman)
+library(ggplot2)
 
 # Synapse setup -- using reticulate because synasper has problems.
 # Follow directions for installed challengerutils here: https://github.com/Sage-Bionetworks/challengerutils
@@ -67,7 +68,8 @@ models <-
 # ymemari-rerun is identical to the submitted ymemari results
 #       "ymemari-rerun" = "coxph-fit",
        "ymemari - PC5" = "coxph-fit-no-PC5",
-       "Base: mean AUC" = "coxph-fit-mean-auc-only",       
+       "Base: mean AUC" = "coxph-fit-mean-auc-only",  
+       "Base: LSC17" = "coxph-fit-sig-LSC17",     
        "ymemari (uncor)" = "coxph-fit-uncor",
        "ymemari (uncor) + PC5" = "coxph-fit-uncor-with-PC5",
        "ymemari (uncor) + mean AUC" = "coxph-fit-uncor-grd")
