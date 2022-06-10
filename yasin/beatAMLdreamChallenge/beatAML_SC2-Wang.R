@@ -38,7 +38,7 @@ data.dir <- "../../Data/training/"
 
 source("signature-utils.R")
 
-signature.name <- "LSC17"
+signature.name <- "Wang"
 signature.file <- paste0(signature.name, "-genelist.tsv")
 
 sig <- read.table(signature.file, sep="\t", header=TRUE)
@@ -70,14 +70,16 @@ rownames(rna_counts) <- rownames(rna_log2counts)
 sample.cols <- colnames(rna_log2counts)
 gene.col <- "Symbol"
 
+# NB: expr.df is counts
 expr.df <- as.data.frame(rna_counts)
 expr.df[, gene.col] <- rnaseq[, gene.col]
 
-# See "Gene Expression Profiling" of https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7135934/
+# See "Establishment of the LSC prognostic score in MDS patients" of https://ashpublications.org/bloodadvances/article/4/4/644/452519/A-4-gene-leukemic-stem-cell-score-can
 # which says that
-# Gene expression profiling of leukemic blasts obtained at diagnosis in the AML02 discovery cohort was performed using GeneChip® Human Genome U133A [Affymetrix, Santa Clara, CA] as described previously(8). The MAS 5.0 algorithm was used to obtain normalized gene expression signals. All the gene expression data was log2 transformed before analysis. For the validation cohort, we downloaded publicly available RPKM (Reads per kilo base of transcript per million mapped reads data from TARGET database. We included 205 patients from AAML0531 and AAML03P1 clinical trials with gene expression data available from diagnostic specimens (RNAseq data from specimen obtained at relapse were not included in this analysis). We used log2(RPKM+1) values for subsequent statistical analysis, it should be noted that TARGET dataset was enriched for patients with poor outcome.
-score.df <- compute.lsc17.score(expr.df, signature, signature.name, gene.col, sample.cols)
-
+# We first conducted Z transformation for the expression of the 17 LSC genes at probe levels across the 176 MDS patients and set 0 as the mean and calculating unit standard deviation of each gene among the patients. 
+# ...
+# The prognostic LSC score was calculated as the sum of the normalized expression level of each component multiplied by its weight as follows: risk(j) = ΣLSC component LSCi (j) × βi, where j denotes the patient accession number, LSCi represents the normalized expression level of the LSC probe i after Z transformation, and βi is the weight of the particular LSC probe i.
+score.df <- compute.score.in.z.cpm.space(expr.df, signature, signature.name, gene.col, sample.cols)
 
 countdata <- as.data.frame(rna_counts)
 rnaseq_voom = voom(countdata)$E

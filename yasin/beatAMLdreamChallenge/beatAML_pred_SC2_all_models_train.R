@@ -10,7 +10,8 @@ input_dir = "/input/"
 output_dir = "output/"
 rds_dir = "/rds/"
 
-input_dir = "../../Data/validation/"
+#input_dir = "../../Data/validation/"
+input_dir = "../../Data/training/"
 rds_dir = "./"
 
 models <- c(
@@ -156,7 +157,7 @@ response_data_t <- response_data_t %>% select(-c("lab_id"))
 
 library(survminer)
 
-out_file=paste0(output_dir,"validation-data-formatted-for-yasin.csv")
+out_file=paste0(output_dir,"training-data-formatted-for-yasin.csv")
 
 write_csv(response_data_t, out_file)
 
@@ -174,23 +175,10 @@ apply.model <- function(model.name) {
     row.names=NULL)
   output_df$survival[which(is.na(output_df$survival))]=0
 
-  out_file=paste0(output_dir,model.name,"_predictions_response.csv")
+  out_file=paste0(output_dir,model.name,"_training_predictions_response.csv")
 
   write_csv(output_df, out_file)
 
-  # Re-fit to validation data
-  multiv_formula <- as.formula(paste('Surv(overallSurvival, vitalStatus) ~', 
-                                   paste(names(coefficients(my_coxph)),collapse=" + ")))
-  val_coxph <- coxph(multiv_formula, data = response_data_t)
-  saveRDS(val_coxph, file=paste0(output_dir, model.name, "-validation.rds"))
-
-  ggforest(val_coxph, data=response_data_t, fontsize = 1.05)
-
-  out_file=paste0(output_dir,model.name,"-validation-forest.png")  
-  ggsave(out_file, width = 14)
-
-  out_file=paste0(output_dir,model.name,"-validation-forest.pdf")  
-  ggsave(out_file, width = 14)
 }
 
 pred.dfs <- list()
@@ -210,7 +198,7 @@ for(nm in names(pred.dfs)) {
   factor <- -1
   if(nm == paste0(wang.signature.name, "-score")) { factor <- 1 }
   df$survival <- factor * df$survival
-  out_file=paste0(output_dir,nm,"_predictions_response.csv")  
+  out_file=paste0(output_dir,nm,"_training_predictions_response.csv")  
   write_csv(df, out_file)
 }
 

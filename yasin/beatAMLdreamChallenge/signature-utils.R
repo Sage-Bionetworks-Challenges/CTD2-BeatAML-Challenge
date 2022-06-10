@@ -65,10 +65,51 @@ adjust.scores.to.reflect.multimappers <- function(signature, expr.df, gene.col) 
   return(adj.signature)
 }
 
-# See https://www.nature.com/articles/nature20598 for application to RNA-seq
-# in section Signature testing: RNA-seq data processing and analysis
-# In particular, expr should be log2(1+RPKM)
-compute.lsc17.score <- function(rnaseq_cnts, signature, signature.name, gene.col, sample.cols) {
+compute.score.in.z.cpm.space <- function(rnaseq_cnts, signature, signature.name, gene.col, sample.cols) {
+  if(any(rnaseq_cnts < 0)) { stop("Was expecting expression matrix to be counts\n") }
+
+  # Convert counts to RPKM (or actually CPM) -- non-logged!
+  library(edgeR)
+  rnaseq <- as.data.frame(cpm(rnaseq_cnts[, sample.cols], prior.count = 0, lib.size = NULL, log = FALSE))
+
+  # Now Z-score the CPMs (i.e., to have zero mean across _samples_ not _genes_)
+  rnaseq <- as.data.frame(t(scale(t(as.matrix(rnaseq)), scale = TRUE, center = TRUE)))
+  colnames(rnaseq) <- sample.cols
+  rnaseq[, gene.col] <- rnaseq_cnts[, gene.col]
+
+  adj.signature <- 
+    adjust.scores.to.reflect.multimappers(signature, as.data.frame(rnaseq), gene.col) 
+  score <- calculate.score(adj.signature, as.data.frame(rnaseq), gene.col, sample.cols) 
+  score.df <- data.frame(signature = as.vector(score), lab_id = names(score))
+  colnames(score.df)[1] <- signature.name
+  return(score.df)
+}
+
+min.max.normalize <- function(x) {
+    return((x- min(x)) /(max(x)-min(x)))
+}
+
+compute.score.in.min.max.cpm.space <- function(rnaseq_cnts, signature, signature.name, gene.col, sample.cols) {
+  if(any(rnaseq_cnts < 0)) { stop("Was expecting expression matrix to be counts\n") }
+
+  # Convert counts to RPKM (or actually CPM) -- non-logged!
+  library(edgeR)
+  rnaseq <- as.data.frame(cpm(rnaseq_cnts[, sample.cols], prior.count = 0, lib.size = NULL, log = FALSE))
+
+  # Now min-max normalize the CPMs (i.e., to have zero mean across _samples_ not _genes_)
+  rnaseq <- as.data.frame(apply(rnaseq, 2, min.max.normalize))
+  colnames(rnaseq) <- sample.cols
+  rnaseq[, gene.col] <- rnaseq_cnts[, gene.col]
+
+  adj.signature <- 
+    adjust.scores.to.reflect.multimappers(signature, as.data.frame(rnaseq), gene.col) 
+  score <- calculate.score(adj.signature, as.data.frame(rnaseq), gene.col, sample.cols) 
+  score.df <- data.frame(signature = as.vector(score), lab_id = names(score))
+  colnames(score.df)[1] <- signature.name
+  return(score.df)
+}
+
+compute.score.in.log2.cpm.space <- function(rnaseq_cnts, signature, signature.name, gene.col, sample.cols) {
   if(any(rnaseq_cnts < 0)) { stop("Was expecting expression matrix to be counts\n") }
 
   # Convert counts to log2(1+RPKM) (or, actually, log2(1+CPM))
@@ -85,3 +126,9 @@ compute.lsc17.score <- function(rnaseq_cnts, signature, signature.name, gene.col
   return(score.df)
 }
 
+# See https://www.nature.com/articles/nature20598 for application to RNA-seq
+# in section Signature testing: RNA-seq data processing and analysis
+# In particular, expr should be log2(1+RPKM)
+compute.lsc17.score <- function(rnaseq_cnts, signature, signature.name, gene.col, sample.cols) {
+  compute.score.in.log2.cpm.space(rnaseq_cnts, signature, signature.name, gene.col, sample.cols)
+}

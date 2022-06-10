@@ -38,7 +38,7 @@ data.dir <- "../../Data/training/"
 
 source("signature-utils.R")
 
-signature.name <- "LSC17"
+signature.name <- "Gentles"
 signature.file <- paste0(signature.name, "-genelist.tsv")
 
 sig <- read.table(signature.file, sep="\t", header=TRUE)
@@ -73,11 +73,11 @@ gene.col <- "Symbol"
 expr.df <- as.data.frame(rna_counts)
 expr.df[, gene.col] <- rnaseq[, gene.col]
 
-# See "Gene Expression Profiling" of https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7135934/
-# which says that
-# Gene expression profiling of leukemic blasts obtained at diagnosis in the AML02 discovery cohort was performed using GeneChip® Human Genome U133A [Affymetrix, Santa Clara, CA] as described previously(8). The MAS 5.0 algorithm was used to obtain normalized gene expression signals. All the gene expression data was log2 transformed before analysis. For the validation cohort, we downloaded publicly available RPKM (Reads per kilo base of transcript per million mapped reads data from TARGET database. We included 205 patients from AAML0531 and AAML03P1 clinical trials with gene expression data available from diagnostic specimens (RNAseq data from specimen obtained at relapse were not included in this analysis). We used log2(RPKM+1) values for subsequent statistical analysis, it should be noted that TARGET dataset was enriched for patients with poor outcome.
-score.df <- compute.lsc17.score(expr.df, signature, signature.name, gene.col, sample.cols)
-
+# Gentles is computed from MAS5 (i.e., non-log) normalization of microarray data.
+# Getting those scales right seems challenging. So, let's not attempt to apply
+# that signature directly, but rather to recompute the coefficients.
+if(!recompute.coefs) { die("Use of original signature not implemented\n") }
+# score.df <- compute.score.in.log2.cpm.space(expr.df, signature, signature.name, gene.col, sample.cols)
 
 countdata <- as.data.frame(rna_counts)
 rnaseq_voom = voom(countdata)$E
@@ -98,7 +98,7 @@ plot(kmsurvival,xlab="time",ylab="Survival probability")
 response_data <- response %>% 
   inner_join(clinical_categorical, by = "lab_id") %>% 
   inner_join(clinical_numerical, by = "lab_id") %>% 
-  inner_join(score.df, by = "lab_id") %>% 
+#  inner_join(score.df, by = "lab_id") %>% 
   inner_join(aucs %>% group_by(lab_id) %>% 
                summarise(mean_auc = mean(auc)), by = "lab_id") %>% 
   inner_join(as.data.frame(rnaseq_pcDat[["x"]]) %>% 

@@ -70,21 +70,39 @@ models <-
        "ymemari - PC5" = "coxph-fit-no-PC5",
        "Base: mean AUC" = "coxph-fit-mean-auc-only",  
        "Base: LSC17" = "coxph-fit-sig-LSC17",     
+       "Base: LSC17-opt" = "coxph-fit-sig-LSC17-recompute",     
+       "Base: Gentles-opt" = "coxph-fit-sig-Gentles-recompute",     
+       "Base: Elsayed" = "coxph-fit-sig-Elsayed",     
+       "Base: Elsayed-opt" = "coxph-fit-sig-Elsayed-recompute",     
+       "Base: Wagner" = "coxph-fit-sig-Wagner",     
+       "Base: Wagner-opt" = "coxph-fit-sig-Wagner-recompute",     
+       "Base: Wang" = "coxph-fit-sig-Wang",     
+       "Base: Wang-opt" = "coxph-fit-sig-Wang-recompute",     
+       "Base: Elsayed-score" = "Elsayed-score",
+       "Base: Wang-score" = "Wang-score",
+       "Base: Wagner-score" = "Wagner-score",
+       "Base: LSC17-score" = "LSC17-score",
        "ymemari (uncor)" = "coxph-fit-uncor",
        "ymemari (uncor) + PC5" = "coxph-fit-uncor-with-PC5",
        "ymemari (uncor) + mean AUC" = "coxph-fit-uncor-grd")
-
-
 
 for(mdl in models) {
   model.output <- paste0(model.dir, mdl, "_predictions_response.csv")
   pred <- read.csv(model.output)
   
+  uniq.pred.pts <- sort(unique(pred$lab_id))
+  uniq.scored.pts <- sort(unique(gold.sc2$lab_id))
+  if(length(uniq.pred.pts) != length(uniq.scored.pts)) {
+    stop(paste0("Different patient lengths for model ", mdl,"\n"))
+  }
+  if(!all(uniq.pred.pts == uniq.scored.pts)) {
+    cat(paste0("Patients missing from model ", mdl, ": ", paste(uniq.scored.pts[!(uniq.scored.pts %in% uniq.pred.pts)], collapse=", "), "\n"))
+    stop(paste0("Patients uniqute to model ", mdl, ": ", paste(uniq.pred.pts[!(uniq.pred.pts %in% uniq.scored.pts)], collapse=", "), "\n"))
+  }
   # order the predictions to match the goldstandard's order
   temp <- pred[match(gold.sc2$lab_id, pred$lab_id), 2]
   sub.mat <- cbind(sub.mat, as.numeric(temp))  
 }
-
 
 # Rename the columns with the team/participant names
 sc2.names <- sapply(submissions2$submitterId, function(sub) {
@@ -206,11 +224,8 @@ g1 <- g1 + theme(text = element_text(size=18), title = element_text(size = 20),
 
 # auc.df <- data.frame(team = names(auc), auc = as.numeric(auc))
 auc.df <- data.frame(team = names(my.auc), auc = as.numeric(my.auc))
-auc.df <- merge(scores, auc.df, all.x = TRUE)
 auc.df$team <- factor(auc.df$team, levels = lvls)
 auc.df$fill <- "#E69F00"
-
-write.table(file="scores.tsv", auc.df, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
 
 ## Plot barplot
 g2 <- ggplot(data = auc.df)
@@ -231,3 +246,11 @@ pg <- plot_grid(g1, g2, nrow=1, align="h", rel_widths = c(3,0.6))
 png("sc2-scores.png", width = 2 * 480)
 print(pg)
 d <- dev.off()
+
+# Do this merge _after_ we make the plot.
+# The resulting auc.df will have one row for each bootstrap / team --
+# i.e., the (mean) auc will be repeated for each bootstrap for a given team.
+# ggplot seems to just sum these up when we plot it.
+auc.df <- merge(scores, auc.df, all.x = TRUE)
+write.table(file="scores.tsv", auc.df, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
+
