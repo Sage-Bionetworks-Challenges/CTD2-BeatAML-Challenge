@@ -69,7 +69,7 @@ library(survminer)
 
 
 
-apply.model <- function(model.name, phase) {
+apply.model <- function(model.name, phase, response_data_t) {
   # load the model fit
   my_coxph <- readRDS(file = paste0(rds_dir,model.name,".rds"))
 
@@ -205,15 +205,19 @@ for(nm in names(pred.dfs)) {
 
 for(model in models) {
   print(model)
-  apply.model(model, phase)
+  apply.model(model, phase, response_data_t)
 }
 
 
 
 }
 
+print("Training")
 apply.models.to.phase("training")
+print("Validation")
 apply.models.to.phase("validation")
+print("Leaderboard")
 apply.models.to.phase("leaderboard")
+print("Concat")
 apply.models.to.phase("concatentated")
-
+print("Done")

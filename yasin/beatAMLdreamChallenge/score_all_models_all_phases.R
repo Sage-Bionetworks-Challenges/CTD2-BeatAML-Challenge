@@ -57,7 +57,7 @@ flag <- gt$vitalStatus == "Alive"
 gt[flag,"vitalStatus"] <- 0
 gt$vitalStatus <- as.numeric(gt$vitalStatus)
 
-score <- score.sc2(m, "survival", "vitalStatus", "overallSurvival")
+# score <- score.sc2(m, "survival", "vitalStatus", "overallSurvival")
 
 aucs <-
   ldply(datasets,
@@ -75,8 +75,40 @@ aucs <-
                })
 colnames(aucs)[1] <- "phase"	       
 
+orig.aucs <- aucs
+
+flag <- aucs$model == "coxph-fit"
+aucs[flag,"model"] <- "yasin"
+flag <- aucs$model == "coxph-fit-no-PC5"
+aucs[flag,"model"] <- "yasin-no-PC5"
+flag <- aucs$model == "coxph-fit-uncor-no-PC5"
+aucs[flag,"model"] <- "yasin-uncor-no-PC5"
+flag <- aucs$model == "coxph-fit-uncor"
+aucs[flag,"model"] <- "yasin-uncor"
+
+aucs$model <- unlist(lapply(aucs$model, function(str) gsub(str, pattern="coxph-fit-", replacement="")))
+
+flag <- aucs$phase == "concatentated"
+aucs[flag,"phase"] <- "concatenated"
+
+aucs$phase <- factor(aucs$phase, levels = c("training", "leaderboard", "validation", "concatenated"))
+
 o <- order(aucs$auc, decreasing = TRUE)
 aucs <- aucs[o,]
 head(aucs)
 
+valid.aucs <- subset(aucs, phase=="validation")
+o <- order(valid.aucs$auc, decreasing=FALSE)
+lvls <- valid.aucs[o, "model"]
+aucs$model <- factor(aucs$model, levels = lvls)
 
+library(ggplot2)
+g <- ggplot(data = aucs)
+g <- g + geom_col(aes(x = model, y = auc))
+g <- g + ylab("survivalROC AUC")
+g <- g + facet_wrap(~phase, nrow=1)
+g <- g + coord_flip()
+
+png("survivalROC-over-models-and-phases.png", width = 2 * 480)
+print(g)
+d <- dev.off()
